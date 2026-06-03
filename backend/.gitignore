@@ -3,3 +3,9 @@ node_modules/
 
 # Variables de entorno
 .env
+
+#git
+git status
+git add .
+git commit -m "Descripción del cambio"
+git push origin main
