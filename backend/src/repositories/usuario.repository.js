@@ -109,3 +109,48 @@ export const findUserByIdRepository = async (id) => {
      */
     return result.rows[0];
 };
+
+export const findUserByEmailRepository = async (email) => {
+    const query = `
+        SELECT *
+        FROM usuarios
+        WHERE email = $1
+        AND deleted_at IS NULL
+    `;
+
+    const result = await pool.query(query, [email]);
+
+    return result.rows[0];
+};
+
+export const createUserRepository = async ({
+    email,
+    passwordHash,
+    nombreEmprendimiento
+}) => {
+
+    const query = `
+        INSERT INTO usuarios (
+            email,
+            password_hash,
+            nombre_emprendimiento
+        )
+        VALUES ($1, $2, $3)
+        RETURNING
+            id,
+            email,
+            nombre_emprendimiento,
+            created_at
+    `;
+
+    const result = await pool.query(
+        query,
+        [
+            email,
+            passwordHash,
+            nombreEmprendimiento
+        ]
+    );
+
+    return result.rows[0];
+};
