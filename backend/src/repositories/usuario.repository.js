@@ -40,7 +40,6 @@ export const findUserByIdRepository = async (id) => {
             id,
             email,
             nombre_emprendimiento,
-            activo,
             created_at
         FROM usuarios
         WHERE id = $1

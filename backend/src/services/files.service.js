@@ -42,7 +42,7 @@ export const uploadLogoService = async (
     // normalmente se guardan en PostgretSQL
 
     return {
-        public_id= result.public_id,
+        public_id: result.public_id,
         url: result.secure_url,
     }
 
