@@ -126,14 +126,20 @@ export const findUserByEmailRepository = async (email) => {
 export const createUserRepository = async ({
     email,
     passwordHash,
-    nombreEmprendimiento
+    nombreEmprendimiento,
+    logo_url,
+    logo_public_id
 }) => {
+
+
 
     const query = `
         INSERT INTO usuarios (
             email,
             password_hash,
-            nombre_emprendimiento
+            nombre_emprendimiento,
+            logo_url,
+            logo_public_id
         )
         VALUES ($1, $2, $3)
         RETURNING
@@ -142,6 +148,8 @@ export const createUserRepository = async ({
             nombre_emprendimiento,
             created_at
     `;
+
+
 
     const result = await pool.query(
         query,

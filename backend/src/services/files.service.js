@@ -16,7 +16,7 @@ import { generateFolderName } from "../utils/generateFolderName.util.js";
  * ==========================================================
  */
 export const uploadLogoService = async (
-    filePath,
+    file,
     nombreDeCarpeta,
 ) => {
 
@@ -25,7 +25,7 @@ export const uploadLogoService = async (
 
     // Sube la imagen a Cloudinary
     const result = await cloudinary.uploader.upload(
-        filePath,
+        file,
         {
             // Ruta donde se almacenará el logo
             //empresa/panaderia-pepito/logo
