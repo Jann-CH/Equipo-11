@@ -1,86 +1,63 @@
 import cloudinary from "../config/cloudinary.config.js";
 import { generateFolderName } from "../utils/generateFolderName.util.js";
-/**
- * COMO EXPORTALO PARA USARLO EN LOS MODULOS SERVICE QUE LLEVA LA LOGICA.
- * Importación con llaves {}
- * Se utiliza cuando el archivo exporta elementos por nombre (Named Export).
- * import {
- *     uploadLogoService,
- *     uploadPdfService
- * } from "./file.service.js";
- */
 
 /**
- * ==========================================================
- * SUBIR LOGO DE UNA EMPRESA
- * ==========================================================
- */
-export const uploadLogoService = async (
-    filePath,
-    nombreDeCarpeta,
-) => {
-
-    //convierto el nombre de la carpeta " Panaderi Pepito " en Panaderia-Pepito.
-    const nombreFolder = await generateFolderName(nombreDeCarpeta);
-
-    // Sube la imagen a Cloudinary
-    const result = await cloudinary.uploader.upload(
-        filePath,
-        {
-            // Ruta donde se almacenará el logo
-            //empresa/panaderia-pepito/logo
-            folder: `empresas/${nombreFolder}/logos`,
-            // Indica que el archivo es una imagen
-            resource_types: "image",
-            // Si existe un logo con el mismo nombre
-            // Cloudinary lo reemplazará
-            overwrite: true,
-
-        }
-    );
-    // Retornamos únicamente los datos que
-    // normalmente se guardan en PostgretSQL
-
-    return {
-        public_id: result.public_id,
-        url: result.secure_url,
-    }
-
-}
+ * ==================================================
+ * files.service.js — Subida de archivos a Cloudinary
+ * ==================================================
+ **/
 
 /**
- * ==========================================================
- * SUBIR PDF DE PRESUPUESTO
- * ==========================================================
+ * Sube un buffer de imagen como logo de empresa a Cloudinary.
+ * @param {Buffer} fileBuffer - Buffer del archivo (req.file.buffer)
+ * @param {string} nombreDeCarpeta - Nombre del emprendimiento
  */
+export const uploadLogoService = async (fileBuffer, nombreDeCarpeta) => {
+    const nombreFolder = generateFolderName(nombreDeCarpeta);
 
-export const uploadPresupuestoService = async (
-    filePath,
-    nombreDeCarpeta,
-) => {
-    //convierto el nombre de la carpeta " Panaderi Pepito " en Panaderia-Pepito.
-    const nombreFolder = await generateFolderName(nombreDeCarpeta);
-    // Sube el PDF a Cloudinary
-    const result = await cloudinary.uploader.upload(
-        filePath,
-        {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            {
+                folder: `empresas/${nombreFolder}/logos`,
+                resource_type: "image", // Corregido: era "resource_types" (typo)
+                overwrite: true,
+            },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve({
+                    public_id: result.public_id,
+                    url: result.secure_url,
+                });
+            }
+        );
+        stream.end(fileBuffer);
+    });
+};
 
-            // Ruta donde se almacenarán
-            // los presupuestos de la empresa
-            // empresas/panaderia-san-martin/presupuestos
-            folder: `empresas/${nombreFolder}/presupuestos`,
-            // Los PDFs se almacenan como RAW
-            resource_type: "raw",
-            // Mantiene el nombre del archivo original
-            use_filename: true,
-            // Evita conflictos de nombres
-            unique_filename: true
+/**
+ * Sube un buffer de PDF como presupuesto de empresa a Cloudinary.
+ * @param {Buffer} fileBuffer - Buffer del archivo (req.file.buffer)
+ * @param {string} nombreDeCarpeta - Nombre del emprendimiento
+ */
+export const uploadPresupuestoService = async (fileBuffer, nombreDeCarpeta) => {
+    const nombreFolder = generateFolderName(nombreDeCarpeta);
 
-        }
-    );
-
-    return {
-        public_id: result.public_id,
-        url: result.secure_url
-    };
-}
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            {
+                folder: `empresas/${nombreFolder}/presupuestos`,
+                resource_type: "raw",   // PDFs como raw
+                use_filename: true,
+                unique_filename: true,
+            },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve({
+                    public_id: result.public_id,
+                    url: result.secure_url,
+                });
+            }
+        );
+        stream.end(fileBuffer);
+    });
+};

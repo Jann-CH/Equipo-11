@@ -3,9 +3,19 @@ node_modules/
 
 # Variables de entorno
 .env
+.env.local
+.env.production
 
-#git
-git status
-git add .
-git commit -m "Descripción del cambio"
-git push origin main
+# Archivos subidos (temporales / ya migrados a memoryStorage)
+# Los archivos en esta carpeta son residuos del almacenamiento anterior.
+# Con multer.memoryStorage() esta carpeta ya no se usa.
+uploads/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

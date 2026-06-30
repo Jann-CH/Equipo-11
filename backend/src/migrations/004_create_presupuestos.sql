@@ -11,7 +11,10 @@ CREATE TABLE presupuestos (
     fecha_vencimiento DATE,
     subtotal DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     total DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
-    estado VARCHAR(50) DEFAULT 'Borrador', -- Borrador, Guardado, Enviado, Aceptado, Rechazado
+    -- CHECK constraint: el motor de BD rechaza cualquier valor no autorizado
+    -- Esta es la última línea de defensa, independiente del backend
+    estado VARCHAR(50) DEFAULT 'Borrador'
+        CHECK (estado IN ('Borrador', 'Guardado', 'Enviado', 'Aceptado', 'Rechazado')),
     pdf_url TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),

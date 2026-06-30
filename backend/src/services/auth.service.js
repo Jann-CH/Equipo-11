@@ -1,80 +1,55 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-
+import { generarToken } from "../utils/jwt.util.js";
+import { AppError } from "../utils/AppError.util.js";
 import {
     findUserByEmailRepository,
-    createUserRepository
+    createUserRepository,
 } from "../repositories/usuario.repository.js";
 
-export const registerService = async ({
-    email,
-    password,
-    nombreEmprendimiento
-}) => {
-
-    const existingUser =
-        await findUserByEmailRepository(email);
+/**
+ * Registra un nuevo usuario en el sistema.
+ * Verifica duplicados antes de crear.
+ */
+export const registerService = async ({ email, password, nombreEmprendimiento }) => {
+    const existingUser = await findUserByEmailRepository(email);
 
     if (existingUser) {
-        throw new Error(
-            "El email ya se encuentra registrado"
-        );
+        throw new AppError("El email ya se encuentra registrado", 409);
     }
 
-    const passwordHash =
-        await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    return await createUserRepository({
-        email,
-        passwordHash,
-        nombreEmprendimiento
-    });
+    return await createUserRepository({ email, passwordHash, nombreEmprendimiento });
 };
 
-export const loginService = async ({
-    email,
-    password
-}) => {
+/**
+ * Autentica un usuario y retorna el token JWT.
+ **/
+export const loginService = async ({ email, password }) => {
+    const user = await findUserByEmailRepository(email);
 
-    const user =
-        await findUserByEmailRepository(email);
+    // Misma respuesta si el usuario no existe o si la contraseña es incorrecta
+    const INVALID_CREDENTIALS_MSG = "Credenciales inválidas";
 
     if (!user) {
-        throw new Error(
-            "Credenciales inválidas"
-        );
+        throw new AppError(INVALID_CREDENTIALS_MSG, 401);
     }
 
-    const validPassword =
-        await bcrypt.compare(
-            password,
-            user.password_hash
-        );
+    const validPassword = await bcrypt.compare(password, user.password_hash);
 
     if (!validPassword) {
-        throw new Error(
-            "Credenciales inválidas"
-        );
+        throw new AppError(INVALID_CREDENTIALS_MSG, 401);
     }
 
-    const token = jwt.sign(
-        {
-            id: user.id,
-            email: user.email
-        },
-        process.env.JWT_SECRET,
-        {
-            expiresIn: "1h"
-        }
-    );
+    // Usar la utilidad centralizada (jwt.util.js)
+    const token = generarToken({ id: user.id, email: user.email });
 
     return {
         token,
         user: {
             id: user.id,
             email: user.email,
-            nombreEmprendimiento:
-                user.nombre_emprendimiento
-        }
+            nombreEmprendimiento: user.nombre_emprendimiento,
+        },
     };
 };

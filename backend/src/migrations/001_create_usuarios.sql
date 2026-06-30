@@ -1,8 +1,6 @@
 -- ==================================================
 -- TABLA: usuarios
 -- Guarda los datos del emprendedor
--- En PostgreSQL podés usar UUID:
--- 550e8400-e29b-41d4-a716-446655440000
 -- ==================================================
 
 CREATE TABLE usuarios(

@@ -1,61 +1,73 @@
-import pool from "../database/connection.js";
 import { uploadPresupuestoService } from "./files.service.js";
+import { AppError } from "../utils/AppError.util.js";
+import {
+    createPresupuestoTransaccionRepository,
+    findPresupuestoConDetallesRepository,
+} from "../repositories/presupuesto.repository.js";
 
-export const createPresupuestoCompletoService = async ({ usuarioId, clienteId, fechaVencimiento, estado, detalles }, file, nombreEmprendimiento) => {
+/**
+ * Estados válidos del presupuesto.
+ * Cualquier valor fuera de esta lista será rechazado.
+ */
+const ESTADOS_VALIDOS = ["Borrador", "Guardado", "Enviado", "Aceptado", "Rechazado"];
+
+/**
+ * ==================================================
+ * SERVICE: Crear presupuesto completo
+ * ==================================================
+ **/
+export const createPresupuestoCompletoService = async (
+    { usuarioId, clienteId, fechaVencimiento, estado, detalles },
+    file,
+    nombreEmprendimiento
+) => {
+    // 1. Validaciones de negocio
     if (!detalles || detalles.length === 0) {
-        throw new Error("No podés generar un presupuesto sin detalles o ítems cargados");
+        throw new AppError("No se puede generar un presupuesto sin ítems cargados", 400);
     }
 
-    // 1. Calcular de manera exacta subtotales y totales en el Backend
+    const estadoFinal = estado || "Borrador";
+    if (!ESTADOS_VALIDOS.includes(estadoFinal)) {
+        throw new AppError(
+            `Estado inválido: "${estadoFinal}". Los valores permitidos son: ${ESTADOS_VALIDOS.join(", ")}.`,
+            400
+        );
+    }
+
+    // 2. Cálculo de subtotales y total en el backend (nunca confiar en el frontend)
     let subtotalCalculado = 0;
-    const detallesProcesados = detalles.map(det => {
+    const detallesProcesados = detalles.map((det) => {
         const itemSubtotal = Number(det.cantidad) * Number(det.precio_unitario);
         subtotalCalculado += itemSubtotal;
         return { ...det, subtotal: itemSubtotal };
     });
     const totalCalculado = subtotalCalculado;
 
-    // 2. Control del archivo PDF de Cloudinary 
+    // 3. Subida del PDF a Cloudinary (si se adjuntó uno)
     let pdfUrl = null;
     if (file) {
-        const uploadResult = await uploadPresupuestoService(file.path, nombreEmprendimiento);
+        const uploadResult = await uploadPresupuestoService(file.buffer, nombreEmprendimiento);
         pdfUrl = uploadResult.url;
     }
 
-    // 3. Inicio del bloque transaccional ACID
-    const client = await pool.connect();
-    try {
-        await client.query("BEGIN");
+    // 4. Delegar la transacción ACID al repositorio
+    return await createPresupuestoTransaccionRepository({
+        usuarioId,
+        clienteId,
+        fechaVencimiento,
+        subtotalCalculado,
+        totalCalculado,
+        estado: estadoFinal,
+        pdfUrl,
+        detallesProcesados,
+    });
+};
 
-        const insertPresupuestoQuery = `
-            INSERT INTO presupuestos (usuario_id, cliente_id, fecha_vencimiento, subtotal, total, estado, pdf_url)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-            RETURNING id, fecha_creacion, subtotal, total, estado, pdf_url;
-        `;
-        const pResult = await client.query(insertPresupuestoQuery, [
-            usuarioId, clienteId, fechaVencimiento, subtotalCalculado, totalCalculado, estado || 'Borrador', pdfUrl
-        ]);
-        
-        const nuevoPresupuesto = pResult.rows[0];
-
-        const insertDetalleQuery = `
-            INSERT INTO detalle_presupuesto (presupuesto_id, item_id, cantidad, precio_unitario, subtotal)
-            VALUES ($1, $2, $3, $4, $5);
-        `;
-
-        for (const det of detallesProcesados) {
-            await client.query(insertDetalleQuery, [
-                nuevoPresupuesto.id, det.item_id, det.cantidad, det.precio_unitario, det.subtotal
-            ]);
-        }
-
-        await client.query("COMMIT");
-        return { ...nuevoPresupuesto, detalles: detallesProcesados };
-
-    } catch (error) {
-        await client.query("ROLLBACK");
-        throw new Error(`Falla crítica en la transacción: ${error.message}`);
-    } finally {
-        client.release();
-    }
+/**
+ * ==================================================
+ * SERVICE: Obtener presupuesto por ID
+ * ==================================================
+ **/
+export const getPresupuestoByIdService = async (presupuestoId, usuarioId) => {
+    return await findPresupuestoConDetallesRepository(presupuestoId, usuarioId);
 };

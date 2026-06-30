@@ -1,88 +1,57 @@
-import jwt from "jsonwebtoken";
-import {
-    findUserByIdRepository
-} from "../repositories/usuario.repository.js";
+import { verificarToken } from "../utils/jwt.util.js";
+import { findUserByIdRepository } from "../repositories/usuario.repository.js";
 
-// verificacion del token
+/**
+ * ==================================================
+ * Middleware: authMiddleware
+ * ==================================================
+ **/
 export const authMiddleware = async (req, res, next) => {
-    // Middleware que valida el token antes de continuar.
     try {
         /* =========================================
-            HEADER AUTHORIZATION
+            1. LEER TOKEN (Cookie o Header)
         ========================================= */
+        const cookieToken = req.cookies?.auth_token;
+        const headerToken = req.headers.authorization?.split(" ")[1];
+        const token = cookieToken || headerToken;
 
-        // Obtiene el header Authorization del request
-        const authHeader = req.headers.authorization;
-
-        // Error si no existe el header
-        if (!authHeader) {
-            return res.status(401).json({
-                success: false,
-                message: "Token no proporcionado",
-            });
-        }
-        /* =========================================
-            FORMATO:
-            Bearer TOKEN
-        ========================================= */
-
-        //extraer el token quitando "Bearer"
-        const token = authHeader.split(" ")[1];
-
-        // Error si no hay token válido
         if (!token) {
             return res.status(401).json({
                 success: false,
-                message: "Token inválido",
+                message: "No autenticado. Por favor inicie sesión.",
             });
         }
 
-        /*==========================================
-            VERIFY JWT
-        ============================================ */
-
-        // Verifica y decodifica el token usando la clave secreta
-        const decoded = jwt.verify(
-            token,
-            process.env.JWT_SECRET,
-        );
-        
+        /* =========================================
+            2. VERIFICAR Y DECODIFICAR
+        ========================================= */
+        const decoded = verificarToken(token);
 
         /* =========================================
-            BUSCAR USUARIO
+            3. VERIFICAR QUE EL USUARIO EXISTE
         ========================================= */
-        /**
-         * En PostgreeSQL buyscamos mediante repositorios
-        */
-
         const usuario = await findUserByIdRepository(decoded.id);
-        // Si el usuario no existe
-        if(!usuario){
-            return res.status(404).json({
+
+        if (!usuario) {
+            return res.status(401).json({
                 success: false,
-                message: "Usuario no encontrado",
+                message: "Usuario no encontrado o dado de baja.",
             });
         }
 
         /* =========================================
-            INYECTAR EN REQUEST
+            4. INYECTAR EN EL REQUEST
         ========================================= */
+        req.usuario = usuario;
+        req.auth = { id: usuario.id };
 
-        req.usuario = usuario; 
-
-        req.auth = {
-            id: usuario.id
-        }
-
-        next()
-
-
+        next();
 
     } catch (error) {
-        console.log("Error real en el middleware:", error);
+        // No exponer detalles del error JWT al cliente
         return res.status(401).json({
             success: false,
-            message: "Token inválido o expirado"
+            message: "Token inválido o expirado. Por favor inicie sesión nuevamente.",
         });
-     }
 }
+};

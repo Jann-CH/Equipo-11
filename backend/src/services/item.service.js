@@ -1,11 +1,12 @@
 import { createItemRepository, findItemsByUsuarioRepository } from "../repositories/item.repository.js";
+import { AppError } from "../utils/AppError.util.js";
 
 export const registerItemService = async (itemData) => {
-    if (!itemData.nombre || !itemData.precio) {
-        throw new Error("El nombre y el precio del ítem son requeridos");
+    if (!itemData.nombre || itemData.precio === undefined || itemData.precio === null) {
+        throw new AppError("El nombre y el precio del ítem son requeridos", 400);
     }
-    if (itemData.precio < 0) {
-        throw new Error("El precio no puede ser un valor negativo");
+    if (Number(itemData.precio) < 0) {
+        throw new AppError("El precio no puede ser un valor negativo", 400);
     }
     return await createItemRepository(itemData);
 };

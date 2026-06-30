@@ -1,38 +1,65 @@
-import { createPresupuestoCompletoService } from "../services/presupuesto.service.js";
-import { findPresupuestoConDetallesRepository } from "../repositories/presupuesto.repository.js";
+import {
+    createPresupuestoCompletoService,
+    getPresupuestoByIdService,
+} from "../services/presupuesto.service.js";
+import { AppError } from "../utils/AppError.util.js";
 
-export const createPresupuesto = async (req, res) => {
+/**
+ * POST /api/presupuestos
+ * Crea un presupuesto completo con sus ítems de detalle.
+ */
+export const createPresupuesto = async (req, res, next) => {
     try {
-        const usuarioId = req.auth.id; 
-       
-        const nombreEmprendimiento = req.usuario.nombre_emprendimiento; 
-        
+        const usuarioId = req.auth.id;
+        const nombreEmprendimiento = req.usuario.nombre_emprendimiento;
+
+        let detalles;
+        try {
+            detalles =
+                typeof req.body.detalles === "string"
+                    ? JSON.parse(req.body.detalles)
+                    : req.body.detalles;
+        } catch {
+            return next(new AppError("El campo 'detalles' no es un JSON válido", 400));
+        }
+
         const datosPresupuesto = {
             usuarioId,
             clienteId: req.body.cliente_id,
             fechaVencimiento: req.body.fecha_vencimiento,
             estado: req.body.estado,
-            detalles: typeof req.body.detalles === "string" ? JSON.parse(req.body.detalles) : req.body.detalles
+            detalles,
         };
 
-        const resultado = await createPresupuestoCompletoService(datosPresupuesto, req.file, nombreEmprendimiento);
+        const resultado = await createPresupuestoCompletoService(
+            datosPresupuesto,
+            req.file,
+            nombreEmprendimiento
+        );
+
         res.status(201).json({ success: true, presupuesto: resultado });
     } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
+        next(error);
     }
 };
 
-export const getPresupuestoById = async (req, res) => {
+/**
+ * GET /api/presupuestos/:id
+ * Obtiene un presupuesto con sus detalles.
+ */
+export const getPresupuestoById = async (req, res, next) => {
     try {
         const usuarioId = req.auth.id; 
         const { id } = req.params;
-        const presupuesto = await findPresupuestoConDetallesRepository(id, usuarioId);
         
+        const presupuesto = await getPresupuestoByIdService(id, usuarioId);
+
         if (!presupuesto) {
-            return res.status(404).json({ success: false, message: "Presupuesto no encontrado" });
+            return next(new AppError("Presupuesto no encontrado", 404));
         }
+
         res.json({ success: true, presupuesto });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 };

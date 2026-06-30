@@ -1,8 +1,9 @@
 import { createClienteRepository, findClientesByUsuarioRepository } from "../repositories/cliente.repository.js";
+import { AppError } from "../utils/AppError.util.js";
 
 export const registerClienteService = async (clienteData) => {
     if (!clienteData.nombre) {
-        throw new Error("El nombre del cliente es un campo obligatorio");
+        throw new AppError("El nombre del cliente es un campo obligatorio", 400);
     }
     return await createClienteRepository(clienteData);
 };
