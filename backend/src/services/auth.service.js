@@ -15,7 +15,6 @@ import {
 // Importamos el servicio encargado de subir los archivos (logos) a la nube o servidor
 import {
     uploadLogoService,
-    deleteFileService
 } from "./files.service.js";
 
 import { 

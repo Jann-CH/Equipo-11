@@ -14,7 +14,7 @@ import {
  */
 const COOKIE_OPTIONS = {
     httpOnly: true,  // Inaccesible desde JavaScript del navegador
-    secure: env.NODE_ENV === "production", // Solo HTTPS en producción
+    secure: process.env.NODE_ENV === "production", // Solo HTTPS en producción
     sameSite: "strict", // Defensa contra CSRF
     maxAge: 60 * 60 * 1000, // 1 hora en milisegundos
     path: "/",
