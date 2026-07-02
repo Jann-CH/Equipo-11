@@ -1,39 +1,27 @@
 -- ==================================================
--- TABLA: PRESUPUESTOS
--- Guarda los presupuestos creados por cada usuario para sus clientes
+-- TABLA: detalle_presupuesto
+-- Guarda cada línea de ítem dentro de un presupuesto
+-- (relación 1 presupuesto -> N ítems)
 -- ==================================================
 
-CREATE TABLE presupuesto(
+CREATE TABLE detalle_presupuesto(
     -- Clave Primaria: Genera un UUID único automáticamente usando la función nativa de Postgres
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    -- Usuario dueño del presupuesto (Clave Foránea hacia la tabla usuarios)
-    usuario_id UUID NOT NULL, 
+    -- Ítem cotizado en esta línea (Clave Foránea hacia la tabla item)
+    items_id UUID NOT NULL,
 
-    -- Cliente al que se le emite el presupuesto (Clave Foránea hacia la tabla cliente)
-    cliente_id UUID NOT NULL, 
+    -- Presupuesto al que pertenece esta línea (Clave Foránea hacia la tabla presupuesto)
+    presupuesto_id UUID NOT NULL,
 
-    -- Fecha de emisión o creación del Presupuesto para el negocio
-    fecha_creacion TIMESTAMP DEFAULT NOW(),
+    -- Cantidad cotizada de este ítem
+    cantidad INTEGER NOT NULL DEFAULT 0,
 
-    -- Subtotal: Suma de los ítems antes de impuestos o descuentos (10 dígitos en total, 2 decimales)
+    -- Precio unitario al momento de cotizar (se copia acá para no depender de que 'item.precio' no cambie después)
+    precio_unitario NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+
+    -- Subtotal de la línea: cantidad * precio_unitario
     subtotal NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
-
-    -- Total: Monto final neto a pagar en el presupuesto
-    total NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
-
-    -- CORRECCIÓN 1: En SQL las cadenas de texto (strings) SIEMPRE van con comillas SIMPLES (''). 
-    -- Las comillas dobles ("") se reservan para nombres de tablas o columnas con mayúsculas/espacios.
-    estado VARCHAR(100) DEFAULT 'guardado',
-
-    -- URL pública del documento PDF almacenado en Cloudinary
-    pdf_url TEXT,
-
-    -- Identificador único de Cloudinary para poder borrar o reemplazar el archivo PDF en el futuro
-    pdf_public_id TEXT,
-
-    -- Fecha límite de validez del presupuesto
-    fecha_vencimiento TIMESTAMP,
 
     -- Auditoría: Fecha de inserción del registro en la base de datos
     created_at TIMESTAMP DEFAULT NOW(),
@@ -41,18 +29,14 @@ CREATE TABLE presupuesto(
     -- Auditoría: Fecha de la última actualización del registro
     updated_at TIMESTAMP DEFAULT NOW(),
 
-    -- Soft Delete: Fecha de eliminación lógica (si no es NULL, el presupuesto se considera borrado)
+    -- Soft Delete: Fecha de eliminación lógica
     deleted_at TIMESTAMP,
 
-    -- Relación con la tabla usuarios: Si el usuario se elimina, se borran sus presupuestos en cascada
-    CONSTRAINT fk_presupuesto_usuario
-        FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id)
-        ON DELETE CASCADE, -- CORRECCIÓN 2: Se agregó la COMA obligatoria aquí para separar las restricciones.
+    -- Relación con la tabla presupuesto: Si el presupuesto se elimina, se borran sus líneas en cascada
+    CONSTRAINT fk_detalle_presupuesto_presupuesto
+        FOREIGN KEY (presupuesto_id) REFERENCES presupuesto(id) ON DELETE CASCADE,
 
-    -- Relación con la tabla cliente: Si el cliente se elimina, se borran sus presupuestos en cascada
-    CONSTRAINT fk_presupuesto_cliente
-        FOREIGN KEY (cliente_id)
-        REFERENCES cliente(id)
-        ON DELETE CASCADE
+    -- Relación con la tabla item: Si el ítem se elimina, la línea queda sin referencia (no se borra el historial)
+    CONSTRAINT fk_detalle_presupuesto_item
+        FOREIGN KEY (items_id) REFERENCES item(id) ON DELETE SET NULL
 );

@@ -16,6 +16,9 @@ CREATE TABLE item(
     -- Descripción opcional del ítem
     descripcion VARCHAR(255),
 
+    -- En lugar de cantidad NUMERIC(10, 2)
+    cantidad INTEGER NOT NULL DEFAULT 0,
+
     -- 'NUMERIC(10,2)' significa 10 dígitos en total, con 2 decimales (ej: 99999999.99).
     precio NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
 

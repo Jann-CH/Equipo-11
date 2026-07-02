@@ -57,6 +57,7 @@ export const uploadLogoService = async (
 export const uploadPresupuestoService = async (
     filePath,
     nombreDeCarpeta,
+    creacionFecha,
 ) => {
     //convierto el nombre de la carpeta " Panaderi Pepito " en Panaderia-Pepito.
     const nombreFolder = await generateFolderName(nombreDeCarpeta);
@@ -68,7 +69,7 @@ export const uploadPresupuestoService = async (
             // Ruta donde se almacenarán
             // los presupuestos de la empresa
             // empresas/panaderia-san-martin/presupuestos
-            folder: `empresas/${nombreFolder}/presupuestos`,
+            folder: `empresas/${nombreFolder}/presupuestos/${creacionFecha}`,
             // Los PDFs se almacenan como RAW
             resource_type: "raw",
             // Mantiene el nombre del archivo original

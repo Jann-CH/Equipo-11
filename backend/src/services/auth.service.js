@@ -6,48 +6,53 @@ import jwt from "jsonwebtoken";
 // Importamos las funciones del repositorio para interactuar directamente con la base de datos de usuarios
 import {
     findUserByEmailRepository,
-    createUserRepository
+    findUserByIdRepository,
+    createUserRepository,
+    updateUserDateRepository,
+    updateUserCompanyRepository,
+    updateUserLogoRepository
 } from "../repositories/usuario.repository.js";
 // Importamos el servicio encargado de subir los archivos (logos) a la nube o servidor
-import { 
-    uploadLogoService 
+import {
+    uploadLogoService,
+    deleteFileService
 } from "./files.service.js";
+
+import { 
+    validateRegisterData 
+} from "../validators/user.validator.js"; 
+
+import { AppError } from "../utils/AppError.util.js";
 
 /**
  * Servicio encargado del registro de un nuevo usuario/emprendimiento.
  * Recibe un objeto desestructurado con las propiedades: email, password, nombreEmprendimiento y file.
- */
-export const registerService = async ({
-    email,
-    password,
-    nombreEmprendimiento,
-    file,
-}) => {
+ * nombre,apellido,email,password, nombreEmprendimiento,*/
+    
+export const registerService = async (datos) => {
 
-    // Busca en la base de datos si ya existe un usuario registrado con el email proporcionado
+    // Validamos los datos de registro usando la función del validador
+    validateRegisterData(datos);
+
+    const { 
+        nombre, 
+        apellido, 
+        email, 
+        password, 
+        nombreEmprendimiento 
+    } = datos;
+    // Busca en la base de datos si ya existe un usuario    registrado con el email proporcionado
     const existingUser =
         await findUserByEmailRepository(email);
 
     // Si el usuario ya existe, interrumpe la ejecución lanzando un error descriptivo
     if (existingUser) {
-        throw new Error(
-            "El email ya se encuentra registrado"
+        throw new AppError(
+            "El email ya está registrado",
+            409
         );
     }
 
-    // Valida que el archivo del logo haya sido enviado; si no está, lanza un error
-    if(!file) throw new Error("Falta el logo");
-
-    // Llama al servicio de subida de archivos pasando el archivo y el nombre del emprendimiento,
-    // y desestructura la respuesta para obtener el 'public' ID y la 'url' de la imagen subida
-    const {
-        public, 
-        url
-    } = await uploadLogoService(file, nombreEmprendimiento);
-
-    // Asigna los valores obtenidos de la subida a variables más descriptivas para la base de datos
-    const logo_url = url;
-    const logo_public_id = public;
 
     // Encripta (aplica un hash) a la contraseña usando bcrypt con un factor de costo (salt rounds) de 10
     const passwordHash =
@@ -55,11 +60,11 @@ export const registerService = async ({
 
     // Guarda el nuevo usuario en la base de datos llamando al repositorio y retorna el resultado
     return await createUserRepository({
+        nombre,
+        apellido,
         email,
         passwordHash,
         nombreEmprendimiento,
-        logo_url,
-        logo_public_id
     });
 };
 
@@ -78,8 +83,9 @@ export const loginService = async ({
 
     // Si no encuentra ningún usuario con ese email, lanza un error genérico por seguridad
     if (!user) {
-        throw new Error(
-            "Credenciales inválidas"
+        throw new AppError(
+            "El email no está registrado",
+            404
         );
     }
 
@@ -92,8 +98,9 @@ export const loginService = async ({
 
     // Si la contraseña no coincide, lanza el mismo error genérico para no dar pistas a atacantes
     if (!validPassword) {
-        throw new Error(
-            "Credenciales inválidas"
+        throw new AppError(
+            "Credenciales inválidas",
+            401
         );
     }
 
@@ -115,6 +122,8 @@ export const loginService = async ({
         token,
         user: {
             id: user.id,
+            nombre: user.nombre,
+            apellido: user.apellido,
             email: user.email,
             nombreEmprendimiento:
                 user.nombre_emprendimiento // Mapea la propiedad de la base de datos (snake_case) al formato JS (camelCase)
@@ -122,3 +131,98 @@ export const loginService = async ({
     };
 };
 
+
+export const getUserByIdService = async (userId) => {
+    
+    const user = await findUserByIdRepository(userId);
+
+    if (!user) {
+        throw new AppError("Usuario no encontrado", 404);
+    }
+
+    return {
+        id: user.id,
+        nombre: user.nombre,
+        apellido: user.apellido,
+        email: user.email,
+        nombreEmprendimiento: user.nombre_emprendimiento,
+        logo_url: user.logo_url,
+        logo_public_id: user.logo_public_id,
+        razon_social: user.razon_social,
+        cuil_cuit: user.cuil_cuit,
+        direccion: user.direccion,
+        rubro: user.rubro,
+        siti_web: user.siti_web,
+        created_at: user.created_at,
+        updated_at: user.updated_at
+    };
+};          
+    
+/** Actualizar datos del Usuario 
+ *    userId,
+    nombre,
+    apellido,
+    email,
+    telefono,
+    cargo,**/
+export const updateUserDateService = async (dato) => {
+    // 1. Obtener datos actuales para saber si ya tiene un logo
+    const user = await findUserByIdRepository(dato.userId);
+
+    if(!user) throw new AppError("Usuario no existe", 404);
+
+    return await updateUserDateRepository(dato)
+}
+
+/**
+ * Actuzalizamos los datos de la empresa del usuario
+ *     userId,
+    razon_social,
+    cuil_cuit,
+    direccion,
+    rubro,
+    siti_web,
+ */
+
+export const updateUserCompanyService = async (dato) => {
+
+    const user = await findUserByIdRepository(dato.userId);
+
+    if (!user) throw new AppError("Usuario no existe", 404);
+
+    return await updateUserCompanyRepository(dato)
+}
+
+/** Actualizar Logo del Usuario **/
+export const updateUserLogoService = async ({
+    userId,
+    file
+}) => {
+    // 1. Obtener datos actuales para saber si ya tiene un logo
+    const user = await findUserByIdRepository(userId);
+
+    if (!user) throw new AppError("Usuario no existe", 404);
+
+    let logo_url = user.logo_url;
+    let logo_public_id = user.logo_public_id;
+
+    // 2. Solo si el usuario envía un archivo nuevo, procesamos el cambio de logo
+    if (file) {
+        // A. Borramos el anterior SOLO SI existía
+        if (user.logo_public_id) {
+            await deleteFileService(user.logo_public_id, "image");
+        }
+
+        // B. Subimos el nuevo
+        const { public: newPublicId, url: newUrl } = await uploadLogoService(file, user.nombreEmprendimiento);
+
+        logo_url = newUrl;
+        logo_public_id = newPublicId;
+    }
+
+    return await updateUserLogoRepository({
+        userId,
+        logo_url,
+        logo_public_id
+    })
+}

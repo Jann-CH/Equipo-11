@@ -21,7 +21,7 @@ CREATE TABLE clientes (
     email VARCHAR(255),
 
     -- CUIT/CUIL
-    cuit VARCHAR(20),
+    cuil_cuit VARCHAR(20),
 
     -- Teléfono
     telefono VARCHAR(50),

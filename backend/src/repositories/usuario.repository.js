@@ -35,11 +35,24 @@ export const findUserByIdRepository = async (id) => {
      * AND deleted_at IS NULL:
      * Ignora usuarios eliminados lógicamente.
      */
-    const query = `
+  const query = `
         SELECT
             id,
             email,
+            nombre, 
+            apellido,
             nombre_emprendimiento,
+            cargo,
+            telefono,
+            razon_social,
+            cuil_cuit,
+            direccion,
+            rubro,
+            sitio_web,
+            rubro,
+            email,
+            logo_url,          
+            logo_public_id,
             activo,
             created_at
         FROM usuarios
@@ -73,6 +86,7 @@ export const findUserByIdRepository = async (id) => {
         query,
         [id]
     );
+
 
     /**
      * PostgreSQL devuelve un objeto.
@@ -110,9 +124,16 @@ export const findUserByIdRepository = async (id) => {
     return result.rows[0];
 };
 
+
 export const findUserByEmailRepository = async (email) => {
     const query = `
-        SELECT *
+        SELECT
+            id,
+            email,
+            password_hash,
+            nombre_emprendimiento,
+            logo_url,
+            created_at
         FROM usuarios
         WHERE email = $1
         AND deleted_at IS NULL
@@ -123,42 +144,154 @@ export const findUserByEmailRepository = async (email) => {
     return result.rows[0];
 };
 
-export const createUserRepository = async ({
-    email,
-    passwordHash,
-    nombreEmprendimiento,
+/**----------------------------------------------------- **/
+
+export const createUserRepository = async (dato) => {
+
+    const { 
+        nombre, 
+        apellido, 
+        email, 
+        passwordHash, 
+        nombreEmprendimiento 
+    } = dato;
+
+    // Definición de la consulta SQL utilizando template literals
+    // Especificamos las columnas de la tabla que queremos completar.  
+
+    const query = `
+        INSERT INTO usuarios (
+            nombre,
+            apellido,
+            email,
+            password_hash,
+            nombre_emprendimiento
+        )
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id, email, nombre_emprendimiento, created_at
+    `;
+
+    // Ejecución de la consulta enviando los parámetros de forma segura
+    const result = await pool.query(
+        query,
+        [
+            nombre,                // $1
+            apellido,              // $2           
+            email,                 // $3
+            passwordHash,          // $4
+            nombreEmprendimiento   // $5
+        ]
+    );
+
+    // Retorna el primer objeto (fila) del resultado insertado
+    return result.rows[0];
+};
+
+export const updateUserDateRepository = async (dato) => {
+    const { 
+        userId, 
+        nombre, 
+        apellido, 
+        email, 
+        telefono, 
+        cargo 
+    } = dato;
+
+    // Actualiza todos los campos recibidos en la tabla usuarios
+    const query = `
+        UPDATE usuarios
+        SET 
+            nombre = $1,
+            apellido = $2,
+            email = $3,
+            telefono = $4,
+            cargo = $5,
+            updated_at = NOW()
+        WHERE id = $6 AND deleted_at IS NULL
+        RETURNING id, nombre, apellido, email, telefono, cargo
+    `;
+
+    // Ejecución de la consulta pasando los valores en el orden correcto
+    const result = await pool.query(query, [
+        nombre,
+        apellido,
+        email,
+        telefono,
+        cargo,
+        userId
+    ]);
+
+    // Retorna el resultado de la actualización
+    return result.rows[0];
+}
+    
+export const updateUserCompanyRepository = async ({
+    userId,
+    razon_social,
+    cuil_cuit,
+    direccion,
+    rubro,
+    sitio_web,
+}) => {
+
+    // Actualiza todos los campos recibidos en la tabla usuarios
+    const query = `
+        UPDATE usuarios
+        SET 
+            razon_social = $1,
+            cuil_cuit = $2,
+            direccion = $3,
+            rubro = $4,
+            sitio_web = $5,
+            updated_at = NOW()
+        WHERE id = $6 AND deleted_at IS NULL
+        RETURNING id, 
+            razon_social, 
+            cuil_cuit, 
+            direccion, 
+            rubro, 
+            siti_web
+    `;
+
+    // Ejecución de la consulta pasando los valores en el orden correcto
+    const result = await pool.query(query, [
+        razon_social,
+        cuil_cuit,
+        direccion,
+        rubro,
+        sitio_web,
+        userId
+    ]);
+
+    // Retorna el resultado de la actualización
+    return result.rows[0];
+}
+
+export const updateUserLogoRepository = async ({
+    userId,
     logo_url,
     logo_public_id
 }) => {
 
-
-
+    // Actualiza todos los campos recibidos en la tabla usuarios
     const query = `
-        INSERT INTO usuarios (
-            email,
-            password_hash,
-            nombre_emprendimiento,
-            logo_url,
-            logo_public_id
-        )
-        VALUES ($1, $2, $3)
-        RETURNING
-            id,
-            email,
-            nombre_emprendimiento,
-            created_at
+        UPDATE usuarios
+        SET 
+            logo_url = $1,
+            logo_public_id = $2,
+            updated_at = NOW()
+        WHERE id = $3 AND deleted_at IS NULL
+        RETURNING id, logo_url, logo_public_id
     `;
 
+    // Ejecución de la consulta pasando los valores en el orden correcto
+    const result = await pool.query(query, [
+        logo_url,
+        logo_public_id,
+        userId
+    ]);
 
-
-    const result = await pool.query(
-        query,
-        [
-            email,
-            passwordHash,
-            nombreEmprendimiento
-        ]
-    );
-
+    // Retorna el resultado de la actualización
     return result.rows[0];
-};
+}
+
