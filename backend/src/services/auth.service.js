@@ -214,7 +214,7 @@ export const updateUserLogoService = async ({
         }
 
         // B. Subimos el nuevo
-        const { public: newPublicId, url: newUrl } = await uploadLogoService(file, user.nombreEmprendimiento);
+        const { public: newPublicId, url: newUrl } = await uploadLogoService(file.buffer, user.nombreEmprendimiento);
 
         logo_url = newUrl;
         logo_public_id = newPublicId;
