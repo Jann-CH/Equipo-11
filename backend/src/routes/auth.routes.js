@@ -34,7 +34,7 @@ router.post("/logout",   authMiddleware, logoutController); // Ejecuta el middle
 router.get("/:id",        authMiddleware, getUserByIdController);  // Solo permite ver el perfil si el token es válido
 
 //Rutas protegidas para actualizar datos del usuario
-router.put("/update/:id", authMiddleware, updateUserDateController);
-router.put("/updateCompany/:id", authMiddleware, updateUserCompanyController);
-router.put("/updateLogo/:id", authMiddleware, upload.single("logo"), updateUserLogoController);
+router.put("/update", authMiddleware, updateUserDateController);
+router.put("/updateCompany", authMiddleware, updateUserCompanyController);
+router.patch("/updateLogo", authMiddleware, upload.single("logo"), updateUserLogoController);
 export default router; // Exporta el router para usarlo en tu servidor principal

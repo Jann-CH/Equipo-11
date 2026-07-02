@@ -151,7 +151,7 @@ export const getUserByIdService = async (userId) => {
         cuil_cuit: user.cuil_cuit,
         direccion: user.direccion,
         rubro: user.rubro,
-        siti_web: user.siti_web,
+        sitio_web: user.siti_web,
         created_at: user.created_at,
         updated_at: user.updated_at
     };
@@ -180,7 +180,7 @@ export const updateUserDateService = async (dato) => {
     cuil_cuit,
     direccion,
     rubro,
-    siti_web,
+    sitio_web,
  */
 
 export const updateUserCompanyService = async (dato) => {
@@ -193,12 +193,13 @@ export const updateUserCompanyService = async (dato) => {
 }
 
 /** Actualizar Logo del Usuario **/
-export const updateUserLogoService = async ({
-    userId,
+export const updateUserLogoService = async (
+    id,
     file
-}) => {
+) => {
+
     // 1. Obtener datos actuales para saber si ya tiene un logo
-    const user = await findUserByIdRepository(userId);
+    const user = await findUserByIdRepository(id);
 
     if (!user) throw new AppError("Usuario no existe", 404);
 
@@ -213,14 +214,14 @@ export const updateUserLogoService = async ({
         }
 
         // B. Subimos el nuevo
-        const { public: newPublicId, url: newUrl } = await uploadLogoService(file.buffer, user.nombreEmprendimiento);
+        const { public_id: newPublicId, url: newUrl } = await uploadLogoService(file.buffer, user.nombre_emprendimiento);
 
         logo_url = newUrl;
         logo_public_id = newPublicId;
     }
 
     return await updateUserLogoRepository({
-        userId,
+        id: user.id,
         logo_url,
         logo_public_id
     })

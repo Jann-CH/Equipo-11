@@ -1,3 +1,4 @@
+import { Readable } from 'stream';
 import cloudinary from "../config/cloudinary.config.js";
 import { generateFolderName } from "../utils/generateFolderName.util.js";
 /**
@@ -15,38 +16,27 @@ import { generateFolderName } from "../utils/generateFolderName.util.js";
  * SUBIR LOGO DE UNA EMPRESA
  * ==========================================================
  */
-export const uploadLogoService = async (
-    file,
-    nombreDeCarpeta,
-) => {
-
-    //convierto el nombre de la carpeta " Panaderi Pepito " en Panaderia-Pepito.
+export const uploadLogoService = async (fileBuffer, nombreDeCarpeta) => {
     const nombreFolder = await generateFolderName(nombreDeCarpeta);
 
-    // Sube la imagen a Cloudinary
-    const result = await cloudinary.uploader.upload(
-        file,
-        {
-            // Ruta donde se almacenará el logo
-            //empresa/panaderia-pepito/logo
-            folder: `empresas/${nombreFolder}/logos`,
-            // Indica que el archivo es una imagen
-            resource_types: "image",
-            // Si existe un logo con el mismo nombre
-            // Cloudinary lo reemplazará
-            overwrite: true,
+    // Convertimos el buffer a stream para Cloudinary
+    const stream = Readable.from(fileBuffer);
 
-        }
-    );
-    // Retornamos únicamente los datos que
-    // normalmente se guardan en PostgretSQL
-
-    return {
-        public_id: result.public_id,
-        url: result.secure_url,
-    }
-
-}
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                folder: `empresa/${nombreFolder}/logos`,
+                resource_type: "image",
+                overwrite: true,
+            },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve({ public_id: result.public_id, url: result.secure_url });
+            }
+        );
+        stream.pipe(uploadStream);
+    });
+};
 
 /**
  * ==========================================================

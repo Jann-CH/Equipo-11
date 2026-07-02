@@ -19,26 +19,30 @@ CREATE TABLE usuarios(
     -- Telefono del usuaroio
     telefono VARCHAR(50),
 
+    razon_social VARCHAR(255),
+
     -- Nombre del Emprendimiento
     nombre_emprendimiento VARCHAR(255) NOT NULL,
 
     -- Nombre del Usuario
-    cargo VARCHAR(100) NOT NULL,
+    cargo VARCHAR(100),
 
     -- Cuil o Cuit del Usuario
-    cuil_cuit VARCHAR(100) NOT NULL,
+    cuil_cuit VARCHAR(100),
 
     -- Direccion del Usuario
-    direccion VARCHAR(100) NOT NULL,
+    direccion VARCHAR(100),
 
     -- Rubro del Usuario
-    rubro VARCHAR(100) NOT NULL,
+    rubro VARCHAR(100),
 
     -- Sitio Web del Usuario
-    sitio_web VARCHAR(200) NOT NULL,
+    sitio_web VARCHAR(200),
 
     -- Email para login y registro
     email VARCHAR(255) NOT NULL UNIQUE,
+
+    activo BOOLEAN DEFAULT true,
 
     -- contraseña hasheada con bcrypt
     password_hash TEXT NOT NULL,

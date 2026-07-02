@@ -103,8 +103,8 @@ export const updateUserLogoController = async (req, res, next) => {
   try{
     
     const file = req.file;
-    const userId = req.params.id;
-    const userLogo = await updateUserLogoService(userId, file);
+    const { id } = req.usuario;
+    const userLogo = await updateUserLogoService(id, file);
     
     res.status(200).json({
       success: true,

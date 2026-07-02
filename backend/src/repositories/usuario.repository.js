@@ -250,7 +250,7 @@ export const updateUserCompanyRepository = async ({
             cuil_cuit, 
             direccion, 
             rubro, 
-            siti_web
+            sitio_web
     `;
 
     // Ejecución de la consulta pasando los valores en el orden correcto
@@ -268,7 +268,7 @@ export const updateUserCompanyRepository = async ({
 }
 
 export const updateUserLogoRepository = async ({
-    userId,
+    id,
     logo_url,
     logo_public_id
 }) => {
@@ -288,7 +288,7 @@ export const updateUserLogoRepository = async ({
     const result = await pool.query(query, [
         logo_url,
         logo_public_id,
-        userId
+        id
     ]);
 
     // Retorna el resultado de la actualización

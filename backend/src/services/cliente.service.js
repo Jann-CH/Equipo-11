@@ -10,7 +10,7 @@ import { clienteValidator } from "../validators/cliente.validator.js";
  *   nombre, 
  *   apellido, 
  *   email, 
- *   cuit, 
+ *   cuil_cuit, 
  *   telefono 
  * } clienteData 
  * @returns 
