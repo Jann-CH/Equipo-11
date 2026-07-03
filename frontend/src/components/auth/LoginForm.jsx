@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { loginService } from "@/services/authService"; 
 import { useRouter } from "next/navigation"; 
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react"; // Importamos los íconos
+import { Eye, EyeOff } from "lucide-react";
 
 export const LoginForm = () => {
   const router = useRouter(); 
@@ -57,7 +57,7 @@ export const LoginForm = () => {
         <div className="relative">
           <Input
             label="Contraseña"
-            type={showPassword ? "text" : "password"} // Alterna el tipo de input
+            type={showPassword ? "text" : "password"}
             placeholder="••••••••"
             {...register("password")}
             error={errors.password?.message}
@@ -66,7 +66,6 @@ export const LoginForm = () => {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            // Ajusta el "top" dependiendo de cómo esté estructurado tu componente Input internamente
             className="absolute right-3 top-9 text-gray-400 hover:text-gray-600 transition-colors"
             aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
           >
@@ -74,7 +73,7 @@ export const LoginForm = () => {
           </button>
         </div>
 
-        {/* Link: Olvidé mi contraseña (Stub) */}
+        {/* Link: Olvidé mi contraseña*/}
         <div className="flex justify-end mt-1">
           <Link
             href="#"
@@ -94,7 +93,7 @@ export const LoginForm = () => {
         </button>
       </form>
 
-      {/* Link: Registro (Stub) */}
+      {/* Link: Registro */}
       <div className="mt-6 text-center text-sm text-gray-600 border-t pt-4">
         ¿Aún no tenés cuenta?{" "}
         <Link
