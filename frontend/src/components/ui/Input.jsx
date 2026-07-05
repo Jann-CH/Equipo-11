@@ -1,19 +1,66 @@
-import { forwardRef } from "react";
+"use client";
 
-export const Input = forwardRef(({ label, error, ...props }, ref) => {
-  return (
-    <div className="flex flex-col gap-1 w-full">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
-      <input
-        ref={ref}
-        className={`border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 transition-all ${
-          error ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
-        }`}
-        {...props}
-      />
-      {error && <span className="text-xs text-red-500">{error}</span>}
-    </div>
-  );
-});
+import { forwardRef, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export const Input = forwardRef(
+  (
+    {
+      label,
+      error,
+      type = "text",
+      className = "",
+      ...props
+    },
+    ref
+  ) => {
+    const [showPassword, setShowPassword] = useState(false);
+
+    const isPassword = type === "password";
+
+    return (
+      <div className="w-full">
+        {label && (
+          <label className="block mb-2 text-[#0B376D] font-medium">
+            {label}
+          </label>
+        )}
+
+        <div className="relative">
+          <input
+            ref={ref}
+            type={isPassword ? (showPassword ? "text" : "password") : type}
+            {...props}
+            className={cn(
+              "w-full h-12 rounded-xl border border-[#0B376D] px-4 pr-12 outline-none transition focus:ring-2 focus:ring-[#0B376D]",
+              className
+            )}
+          />
+
+          {isPassword && (
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+            >
+              {showPassword ? (
+                <EyeOff size={20} />
+              ) : (
+                <Eye size={20} />
+              )}
+            </button>
+          )}
+        </div>
+
+        {error && (
+          <p className="mt-1 text-sm text-red-500">
+            {error}
+          </p>
+        )}
+      </div>
+    );
+  }
+);
 
 Input.displayName = "Input";
