@@ -19,6 +19,19 @@ export const loginService = async (credentials) => {
 };
 
 /**
+ * Registra un nuevo usuario.
+ */
+export const registerService = async (userData) => {
+
+  const { data } = await api.post(
+    "/auth/register",
+    userData
+  );
+
+  return data;
+};
+
+/**
  * Cierra la sesión del usuario.
  * El backend elimina la cookie auth_token.
  */
