@@ -48,3 +48,22 @@ export const getMeService = async () => {
   const { data } = await api.get('/auth/me');
   return data;
 };                
+
+export const updateUserDataService = async (userData) => {
+  const { data } = await api.put('/auth/update', userData);
+  return data; 
+}
+
+export const updateUserCompanyService = async (companyData) => {
+
+  const { data } = await api.put('/auth/updateCompany', companyData);
+  return data;
+
+}
+
+export const updateUserLogoService = async (formData) => {
+  const { data } = await api.patch('/auth/updateLogo', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return data;
+}

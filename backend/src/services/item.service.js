@@ -22,8 +22,6 @@ export const getItemsByUsuarioService = async (usuarioId) => {
 
 export const registerItemService = async (itemData) => {
 
-
-
     // 1. Normalización: Aseguramos que la cantidad sea un entero antes de enviarla al repositorio
     const sanitizedData = {
         ...itemData,
