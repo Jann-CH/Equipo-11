@@ -22,7 +22,8 @@ Middlewares Globales
 // debería tener una sola URL fija.
 const allowedOrigins = [
   'http://localhost:3000',
-  'http://192.168.56.1:3000'
+  'http://192.168.56.1:3000',
+   process.env.FRONTEND_URL
 ];
 
 app.use(cors({
