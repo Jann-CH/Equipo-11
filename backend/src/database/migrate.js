@@ -100,7 +100,7 @@ export const runMigration = async () => {
           cantidad INTEGER NOT NULL DEFAULT 0,
           precio_unitario NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
           subtotal NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
-          created_at TIMESTAMP DELTAULT NOW(), -- corregido a DEFAULT NOW()
+          created_at TIMESTAMP DEFAULT NOW(), -- corregido a DEFAULT NOW()
           updated_at TIMESTAMP DEFAULT NOW(),
           deleted_at TIMESTAMP,
           CONSTRAINT fk_detalle_presupuesto_presupuesto
