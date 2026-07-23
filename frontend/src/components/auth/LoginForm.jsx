@@ -25,9 +25,7 @@ export const LoginForm = () => {
   const onSubmit = async (data) => {
     try {
       await loginService(data);
-      // Forzar recarga completa de la ventana para asegurar 
-      // que el navegador procese y envíe correctamente la cookie HttpOnly
-      window.location.assign("/perfil");
+      router.push("/perfil");
     } catch (error) {
       setError("password", {
         type: "manual",

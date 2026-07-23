@@ -8,6 +8,7 @@ import { PROTECTED_ROUTES, AUTH_ROUTES } from "@/lib/routes";
  **/
 
 export function middleware(request) {
+    /*
     const { pathname } = request.nextUrl;
 
     // Leer el token desde la Cookie HttpOnly
@@ -34,7 +35,7 @@ export function middleware(request) {
     if (isAuthRoute && token) {
         //de dashboard pasamos al  perfil momentaneamente para verificar si funciona. 
         return NextResponse.redirect(new URL("/perfil", request.url));
-    }
+    }*/
 
     return NextResponse.next();
 }
