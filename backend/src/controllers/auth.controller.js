@@ -15,11 +15,17 @@ import {
 
 const COOKIE_NAME = "auth_token";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const COOKIE_OPTIONS = {
   httpOnly: true,  // Inaccesible desde JavaScript del navegador
-  secure: false, // ¡Muy importante en desarrollo local!
   //secure: process.env.NODE_ENV === "production", // Solo HTTPS en producción
-  sameSite: "lax", // Defensa contra CSRF
+  // En producción (Vercel/Render con HTTPS) debe ser true. En local (localhost) false.
+  secure: isProduction, // ¡Muy importante en desarrollo local!
+  
+  // En producción, al estar en dominios distintos (frontend en Vercel y backend en Render), 
+  // 'sameSite' debe ser 'none' para que el navegador permita enviar la cookie cruzada.
+  sameSite: isProduction ? "none" : "lax",
   maxAge: 60 * 60 * 1000, // 1 hora en milisegundos
   path: "/",
 };
