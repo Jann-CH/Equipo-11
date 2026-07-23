@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { PROTECTED_ROUTES, AUTH_ROUTES } from "@/lib/routes";
 
 export function middleware(request) {
+    /*
     const { pathname } = request.nextUrl;
 
     // 1. Doble seguridad: Si la ruta es pública o estática, dejar pasar de inmediato
@@ -36,6 +37,7 @@ export function middleware(request) {
         return NextResponse.redirect(new URL("/perfil", request.url));
     }
 
+    */
     return NextResponse.next();
 }
 
