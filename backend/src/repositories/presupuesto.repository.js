@@ -89,12 +89,12 @@ export const findPresupuestoConDetallesRepository = async (presupuestoId, usuari
  * ==================================================
  **/
 export const createPresupuestoTransaccionRepository = async ({
-    usuarioId, 
-    clienteId,  
-    fechaVencimiento, 
+    usuarioId,
+    clienteId,
+    fechaVencimiento,
     descripcion,
     estado,
-    subtotal, 
+    subtotal,
     descuentoPorcentaje,
     total,
     detallesProcesados,
@@ -124,10 +124,10 @@ export const createPresupuestoTransaccionRepository = async ({
                     )
                  VALUES ($1, $2, $3, $4, $5);`,
                 [
-                    nuevoPresupuesto.id, 
-                    det.item_id, 
-                    det.cantidad, 
-                    det.precio_unitario, 
+                    nuevoPresupuesto.id,
+                    det.item_id,
+                    det.cantidad,
+                    det.precio_unitario,
                     det.subtotal
                 ]
             );
@@ -176,10 +176,10 @@ export const addPdfRepository = async (dato) => {
     `;
 
     const result = await pool.query(query, [
-        pdf_url, 
-        pdf_public_id, 
+        pdf_url,
+        pdf_public_id,
         estado,
-        presupuestoId, 
+        presupuestoId,
         usuarioId
     ]);
 
@@ -201,7 +201,7 @@ export const addPdfRepository = async (dato) => {
  */
 
 export const findPresupuestosConFiltrosRepository = async (
-    usuarioId, 
+    usuarioId,
     filtros,
     limite,
     skip
@@ -297,4 +297,108 @@ export const contarPresupuestosConFiltrosRepository = async (
     const result = await pool.query(query, values);
     // Retornamos el número convertido a entero
     return parseInt(result.rows[0].count, 10);
+};
+
+/**
+ * DASHBOARD
+ * SUMA TOTAL DE PRESUPUESTO
+ * CANTIDAD DE PRESUPUESTO ESTADOS ( GUARDADO, ACEPTADOS, RECHAZO)
+ * ACTIVIDAD SEMANAL GUARDADO ACEPTADOS RECHAZADOS
+ * 
+ */
+
+export const getDashboardDataRepository = async (usuarioId) => {
+    const query = `
+        WITH estadisticas AS (
+            SELECT 
+                COALESCE(SUM(total), 0) AS suma_total,
+                COUNT(*) FILTER (WHERE estado = 'Guardado') AS guardados,
+                COUNT(*) FILTER (WHERE estado = 'Aceptado') AS aceptados,
+                COUNT(*) FILTER (WHERE estado = 'Rechazado') AS rechazados,
+                COUNT(*) AS total_presupuestos
+            FROM presupuestos
+            WHERE usuario_id = $1 AND deleted_at IS NULL
+        ),
+        actividad AS (
+            SELECT 
+                TO_CHAR(created_at, 'Dy') AS dia_corto,
+                EXTRACT(ISODOW FROM created_at) AS dia_num,
+                COUNT(*) FILTER (WHERE estado = 'Guardado') AS guardados,
+                COUNT(*) FILTER (WHERE estado = 'Aceptado') AS aceptados,
+                COUNT(*) FILTER (WHERE estado = 'Rechazado') AS rechazados
+            FROM presupuestos
+            WHERE usuario_id = $1 
+              AND deleted_at IS NULL
+              AND created_at >= NOW() - INTERVAL '7 days'
+            GROUP BY dia_num, dia_corto
+            ORDER BY dia_num ASC
+        )
+        SELECT 
+            (SELECT ROW_TO_JSON(estadisticas) FROM estadisticas) AS stats,
+            (SELECT COALESCE(JSON_AGG(actividad), '[]'::json) FROM actividad) AS semanal;
+    `;
+
+    try {
+        const { rows } = await pool.query(query, [usuarioId]);
+        const resultado = rows[0];
+
+        // Parseamos y formateamos los datos listos para el front
+        return {
+            estadisticas: {
+                sumaTotal: parseFloat(resultado.stats.suma_total || 0),
+                guardados: parseInt(resultado.stats.guardados || 0, 10),
+                aceptados: parseInt(resultado.stats.aceptados || 0, 10),
+                rechazados: parseInt(resultado.stats.rechazados || 0, 10),
+                totalPresupuestos: parseInt(resultado.stats.total_presupuestos || 0, 10)
+            },
+            actividadSemanal: resultado.semanal.map(row => ({
+                dia: row.dia_corto,
+                pendientes: parseInt(row.guardados, 10),
+                aprobados: parseInt(row.aceptados, 10),
+                rechazados: parseInt(row.rechazados, 10)
+            }))
+        };
+    } catch (error) {
+        console.error("Error al obtener los datos del dashboard en una sola query:", error);
+        throw error;
+    }
+};
+
+export const getBudgetRepository = async (usuarioId, limit = null, offset = 0) => {
+    let query = `
+        SELECT 
+            u.nombre AS usuario_nombre, 
+            u.apellido AS usuario_apellido,
+            p.id AS presupuesto_id, 
+            p.fecha_vencimiento, 
+            p.total, 
+            p.estado,
+            c.nombre AS cliente_nombre, 
+            c.apellido AS cliente_apellido,
+            STRING_AGG(i.nombre, ', ') AS nombres_items
+        FROM presupuestos p 
+        INNER JOIN usuarios u ON p.usuario_id = u.id
+        INNER JOIN clientes c ON p.cliente_id = c.id
+        LEFT JOIN detalle_presupuesto dp ON p.id = dp.presupuesto_id
+        LEFT JOIN items i ON dp.items_id = i.id
+        WHERE p.usuario_id = $1 AND p.deleted_at IS NULL
+        GROUP BY u.id, p.id, c.id
+        ORDER BY p.created_at DESC
+    `;
+
+    const params = [usuarioId];
+
+    // Si mandas un límite (por ejemplo, 5 para la vista inicial), lo agregamos dinámicamente
+    if (limit !== null) {
+        query += ` LIMIT $2 OFFSET $3`;
+        params.push(limit, offset);
+    }
+
+    try {
+        const { rows } = await pool.query(query, params);
+        return rows;
+    } catch (error) {
+        console.error("Error al obtener los presupuestos:", error);
+        throw error;
+    }
 };

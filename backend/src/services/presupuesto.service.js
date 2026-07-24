@@ -7,7 +7,13 @@ import {
     findPresupuestoConClienteRepository,
     findPresupuestosConFiltrosRepository,
     contarPresupuestosConFiltrosRepository,
+    getDashboardDataRepository,
+    getBudgetRepository,
 } from "../repositories/presupuesto.repository.js";
+import {
+    verifyUserByIdExistsRepository
+} from "../repositories/usuario.repository.js";
+import { AppError } from "../utils/AppError.util.js";
 
 /**
  * Estados válidos del presupuesto.
@@ -171,3 +177,49 @@ export const filtroPresupuestoService = async (
     };
 
 }
+
+/**
+ * DASHBOARD
+ * SUMA TOTAL DE PRESUPUESTO
+ * CANTIDAD DE PRESUPUESTO ESTADOS ( GUARDADO, ACEPTADOS, RECHAZO)
+ * ACTIVIDAD SEMANAL GUARDADO ACEPTADOS RECHAZADOS
+ * LIMITE DE DATOS DE PRESUPUESTOS 5 & PAGINACION
+ */
+
+export const getDashboardDataService = async ( usuarioId ) => {
+
+    // 1. Verificamos si el usuario existe
+    const existeUsuario = await verificarUsuarioPorIdExisteRepository(usuarioId);
+
+    if (!existeUsuario) {
+        throw new AppError("El usuario no existe", 404);
+    }
+
+    // 2. Obtenemos todas las estadísticas y la actividad semanal en una sola llamada
+    const stats = await getDashboardDataRepository(usuarioId);
+
+    return stats;
+
+}
+
+export const getBudgetService = async ( 
+    usuarioId, 
+    page,
+    limit,
+) => {
+
+    // Si el front manda página y límite, calculamos el offset
+    const parsedLimit = limit ? parseInt(limit, 10) : null;
+    const parsedPage = page ? parseInt(page, 10) : 1;
+    const offset = parsedLimit ? (parsedPage - 1) * parsedLimit : 0;
+
+    const presupuestos = await getBudgetRepository(usuarioId, parsedLimit, offset);
+
+    return {
+        paginaActual: parsedPage,
+        limite: parsedLimit,
+        data: presupuestos
+    };
+
+}
+

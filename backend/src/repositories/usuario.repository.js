@@ -2,6 +2,25 @@
 // db es el Pool que configuramos en database.js
 import pool from "../database/connection.js";
 
+export const verifyUserByIdExistsRepository = async (usuarioId) => {
+    const query = `
+        SELECT EXISTS (
+            SELECT 1 
+            FROM usuarios 
+            WHERE id = $1 
+            AND deleted_at IS NULL
+        ) AS existe;
+    `;
+
+    try {
+        const { rows } = await pool.query(query, [usuarioId]);
+        return rows[0].existe; // Retorna true o false
+    } catch (error) {
+        console.error("Error al verificar si el usuario existe por ID:", error);
+        throw error;
+    }
+};
+
 /**
  * ==================================================
  * REPOSITORY: Buscar usuario por ID

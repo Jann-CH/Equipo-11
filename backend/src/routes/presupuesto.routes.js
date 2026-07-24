@@ -4,7 +4,9 @@ import {
     createPresupuesto, 
     getPresupuestoById,
     addPdfController,
-    filtroPresuestoController
+    filtroPresuestoController,
+    getDashboardController,
+    getBudgetController,
 } from "../controllers/presupuesto.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validateUUID } from "../middlewares/validateUUID.middleware.js";
@@ -15,16 +17,31 @@ const router = Router();
 // Todas las rutas de presupuestos requieren autenticación
 router.use(authMiddleware);
 
-// upload.single("pdf") procesa el archivo PDF opcional del presupuesto
+// ==========================================
+// 1. RUTAS ESTÁTICAS (PRIMERO)
+// ==========================================
+
+// Ruta para el dashboard general
+router.get("/dashboard", getDashboardController);
+
+// Ruta para la lista con paginación
+router.get("/lista", getBudgetController);
+
+// Ruta para listar/filtrar presupuestos en general
+router.get("/", filtroPresuestoController);
+
+
+// ==========================================
+// 2. RUTAS DINÁMICAS Y DE ACCIÓN (DESPUÉS)
+// ==========================================
+
+// Crear un presupuesto
 router.post("/", upload.single("pdf"), createPresupuesto);
 
-// validateUUID verifica que el :id sea un UUID válido antes de llegar al controlador
-router.get("/:id", validateUUID, getPresupuestoById);
-
-// Ruta para actualizar PDF: Esta sí es PUT porque modifica un recurso
+// Ruta para actualizar PDF
 router.put("/:presupuestoId/pdf", upload.single("pdf"), addPdfController);
 
-// Ruta para listar/filtrar presupuestos
-router.get("/", filtroPresuestoController);
+// Ruta por ID (DEBE IR AL FINAL para que no intercepte a /dashboard o /lista)
+router.get("/:id", validateUUID, getPresupuestoById);
 
 export default router;

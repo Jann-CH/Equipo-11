@@ -3,6 +3,8 @@ import {
     getPresupuestoByIdService,
     addPdfService,
     filtroPresupuestoService,
+    getDashboardDataService,
+    getBudgetService,
 } from "../services/presupuesto.service.js";
 import { AppError } from "../utils/AppError.util.js";
 
@@ -139,3 +141,33 @@ export const filtroPresuestoController = async (req, res, next) => {
     }
 
 }
+
+export const getDashboardController = async (req, res, next) => {
+    try{
+        const usuarioId = req.auth.id;
+        const data = await getDashboardDataService(usuarioId);
+        res.status(200).json({
+            success: true,
+            data,
+        })
+    }catch(error){
+        next(error);
+    }
+}
+
+export const getBudgetController = async (req, res,next) => {
+    try{
+        const {
+            page =  1,
+            limit = 5,
+        } = req.query;
+        const usuarioId = req.auth.id;
+        const data = await getBudgetService(usuarioId, page, limit);
+        res.status(200).json({
+            success:true,
+            data,
+        })
+    }catch(error){
+        next(error);
+    }
+ }
