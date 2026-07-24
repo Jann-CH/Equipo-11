@@ -3,6 +3,8 @@
 -- Guarda los items de cada usuario
 -- ==================================================
 
+CREATE TYPE tipo_item AS ENUM ('producto', 'servicio');
+
 CREATE TABLE items (
     -- Clave Primaria: Genera un UUID único automáticamente usando la función nativa de Postgres
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -13,8 +15,7 @@ CREATE TABLE items (
     -- Nombre del ítem (Obligatorio, máximo 100 caracteres)
     nombre VARCHAR(100) NOT NULL,
 
-    -- En lugar de cantidad NUMERIC(10, 2)
-    cantidad INTEGER NOT NULL DEFAULT 0,
+    tipo tipo_item NOT NULL,
 
     -- 'NUMERIC(10,2)' significa 10 dígitos en total, con 2 decimales (ej: 99999999.99).
     precio NUMERIC(10, 2) NOT NULL DEFAULT 0.00,

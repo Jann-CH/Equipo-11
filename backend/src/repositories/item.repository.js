@@ -8,12 +8,12 @@ export const findItemByIdRepository = async (itemId, usuarioId) => {
             id, 
             usuario_id, 
             nombre, 
+            tipo,
             precio, 
-            cantidad, 
             activo, 
             created_at, 
             updated_at
-        FROM item 
+        FROM items 
         WHERE id = $1 
         AND usuario_id = $2 
         AND deleted_at IS NULL;
@@ -27,7 +27,7 @@ export const findItemByIdRepository = async (itemId, usuarioId) => {
 
 export const findItemsByUsuarioRepository = async (usuarioId) => {
     const query = `
-        SELECT id, nombre, precio, cantidad, activo
+        SELECT id, nombre, tipo, precio, activo
         FROM items
         WHERE usuario_id = $1 AND deleted_at IS NULL
         ORDER BY nombre ASC;
@@ -42,22 +42,20 @@ export const createItemRepository = async (itemData) => {
     const { 
         usuarioId, 
         nombre,
-        descripcion,
-        precio, 
-        cantidad 
+        tipo,
+        precio 
     } = itemData;
 
     const query = `
-        INSERT INTO item (usuario_id, nombre, descripcion, precio, cantidad)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, usuario_id, nombre, descripcion, precio, cantidad, activo, created_at;
+        INSERT INTO items (usuario_id, nombre, tipo, precio)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, usuario_id, nombre, tipo, precio, activo, created_at;
     `;
     const result = await pool.query(query, [
         usuarioId, 
         nombre,  
-        descripcion,
-        precio,
-        cantidad
+        tipo,
+        precio
     ]);
     return result.rows[0];
 };
@@ -66,29 +64,26 @@ export const updateItemRepository = async (itemId, usuarioId, itemData) => {
 
     const {
         nombre,
-        descripcion,
+        tipo,
         precio,
-        cantidad,
         activo
     } = itemData;
 
     const query = `
         UPDATE items
         SET nombre = $1,
-            descripcion = $2,
+            tipo = $2,
             precio = $3,
-            cantidad = $4,
-            activo = $5,
+            activo = $4,
             updated_at = NOW()
-        WHERE id = $6 AND usuario_id = $7 AND deleted_at IS NULL
-        RETURNING id, usuario_id, nombre, descripcion, precio, cantidad, activo, updated_at;
+        WHERE id = $5 AND usuario_id = $6 AND deleted_at IS NULL
+        RETURNING id, usuario_id, nombre, tipo, precio, activo, updated_at;
     `;
 
     const result = await pool.query(query, [
         nombre,
-        descripcion,
+        tipo,
         precio,
-        cantidad,
         activo,
         itemId,
         usuarioId

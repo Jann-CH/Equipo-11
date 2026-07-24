@@ -48,22 +48,29 @@ export const runMigration = async () => {
               ON DELETE CASCADE
       );
 
-      -- 3. TABLA: items
-      CREATE TABLE IF NOT EXISTS public.items (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          usuario_id UUID NOT NULL,
-          nombre VARCHAR(100) NOT NULL,
-          cantidad INTEGER NOT NULL DEFAULT 0,
-          precio NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
-          activo BOOLEAN NOT NULL DEFAULT TRUE,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          deleted_at TIMESTAMP,
-          CONSTRAINT fk_item_usuario
-              FOREIGN KEY (usuario_id)
-              REFERENCES usuarios(id)
-              ON DELETE CASCADE
-      );
+    -- 3. TABLA: items
+
+        DO $$ BEGIN
+            CREATE TYPE tipo_item AS ENUM ('producto', 'servicio');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;
+
+        CREATE TABLE IF NOT EXISTS public.items (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            usuario_id UUID NOT NULL,
+            nombre VARCHAR(100) NOT NULL,
+            tipo tipo_item NOT NULL,
+            precio NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+            activo BOOLEAN NOT NULL DEFAULT TRUE,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            deleted_at TIMESTAMP,
+            CONSTRAINT fk_item_usuario
+                FOREIGN KEY (usuario_id)
+                REFERENCES usuarios(id)
+                ON DELETE CASCADE
+        );
 
       -- 4. TABLA: presupuestos
       CREATE TABLE IF NOT EXISTS public.presupuestos (

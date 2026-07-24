@@ -4,18 +4,16 @@ export const createItemValidation = [
     body("nombre")
         .trim()
         .notEmpty().withMessage("El nombre del ítem es obligatorio")
-        .isLength({ max: 150 }).withMessage("El nombre no puede superar 150 caracteres")
+        .isLength({ max: 100 }).withMessage("El nombre no puede superar 100 caracteres")
         .escape(),
-    body("descripcion")
-        .optional()
-        .trim()
-        .escape(),
-    body("cantidad")
+
+    body("tipo")
         .trim()
         .notEmpty()
-        .withMessage("La cantidad es obligatoria")
-        .isInt({ min: 0 })
-        .withMessage("La cantidad debe ser un número entero mayor o igual a 0"),
+        .withMessage("El tipo de ítem es obligatorio")
+        .isIn(["producto", "servicio"])
+        .withMessage("El tipo debe ser producto o servicio"),
+
     body("precio")
         .notEmpty()
         .withMessage("El precio es obligatorio")

@@ -9,7 +9,7 @@ import { AppError } from "../utils/AppError.util.js";
 
 /**
  * Servicio encargado de registrar un nuevo item.
- * Recibe un objeto desestructurado con las propiedades: usuarioId, nombre, precio, cantidad.
+ * Recibe un objeto desestructurado con las propiedades: usuarioId, nombre, precio, tipo.
  * Valida los datos del item usando la función del validador.
  * Llama al repositorio para crear el item en la base de datos y retorna el resultado.
  */
@@ -22,10 +22,9 @@ export const getItemsByUsuarioService = async (usuarioId) => {
 
 export const registerItemService = async (itemData) => {
 
-    // 1. Normalización: Aseguramos que la cantidad sea un entero antes de enviarla al repositorio
+    // 1. Normalización: Aseguramos que los datos del item sean correctos antes de enviarlos al repositorio
     const sanitizedData = {
-        ...itemData,
-        cantidad: Math.floor(Number(itemData.cantidad) || 0)
+        ...itemData
     };
 
     // 2. Llamar al repositorio para crear el item  
@@ -46,10 +45,9 @@ export const updateItemService = async (usuarioId, itemId, updateData) => {
         throw new AppError("Para realizar cambios, el ítem debe estar activo (true).", 400);
     }
 
-    // 3. Normalización: Aseguramos que la cantidad sea un entero antes de enviarla al repositorio
+    // 3. Normalización: Aseguramos que los datos del item sean correctos antes de enviarlos al repositorio
     const sanitizedData = {
         ...updateData,
-        cantidad: Math.floor(Number(updateData.cantidad) || 0),
         // Si no envían 'activo', usamos el valor actual que ya tenemos en itemDate
         activo: updateData.activo !== undefined ? updateData.activo : itemDate.activo
     };
