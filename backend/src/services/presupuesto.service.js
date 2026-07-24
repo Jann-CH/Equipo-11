@@ -13,7 +13,6 @@ import {
 import {
     verifyUserByIdExistsRepository
 } from "../repositories/usuario.repository.js";
-import { AppError } from "../utils/AppError.util.js";
 
 /**
  * Estados válidos del presupuesto.
