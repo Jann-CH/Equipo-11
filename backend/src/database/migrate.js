@@ -77,15 +77,16 @@ export const runMigration = async () => {
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           usuario_id UUID NOT NULL,
           cliente_id UUID NOT NULL,
-          descripcion VARCHAR(255),
+          numero VARCHAR(20) UNIQUE NOT NULL,
+          fecha DATE NOT NULL DEFAULT CURRENT_DATE,
           subtotal NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
-          descuento_porcentaje NUMERIC(5, 2) DEFAULT 0.00,
           total NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
           estado VARCHAR(50) DEFAULT 'Borrador'
               CHECK (estado IN ('Borrador', 'Guardado', 'Enviado', 'Aceptado', 'Rechazado')),
           pdf_url TEXT,
           pdf_public_id TEXT,
-          fecha_vencimiento TIMESTAMP,
+          fecha_vencimiento DATE,
+          observaciones TEXT,
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
           deleted_at TIMESTAMP,
@@ -102,18 +103,19 @@ export const runMigration = async () => {
       -- 5. TABLA: detalle_presupuesto
       CREATE TABLE IF NOT EXISTS public.detalle_presupuesto (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          items_id UUID NOT NULL,
           presupuesto_id UUID NOT NULL,
-          cantidad INTEGER NOT NULL DEFAULT 0,
+          item_id UUID NOT NULL,
+          nombre_item VARCHAR(150) NOT NULL,
+          cantidad INTEGER NOT NULL DEFAULT 1,
           precio_unitario NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
           subtotal NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
-          created_at TIMESTAMP DEFAULT NOW(), -- corregido a DEFAULT NOW()
+          created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
           deleted_at TIMESTAMP,
           CONSTRAINT fk_detalle_presupuesto_presupuesto
               FOREIGN KEY (presupuesto_id) REFERENCES presupuestos(id) ON DELETE CASCADE,
           CONSTRAINT fk_detalle_presupuesto_item
-              FOREIGN KEY (items_id) REFERENCES items(id) ON DELETE SET NULL
+              FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE RESTRICT
       );
     `);
 

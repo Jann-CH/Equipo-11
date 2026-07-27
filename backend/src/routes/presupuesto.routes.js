@@ -36,7 +36,7 @@ router.get("/", filtroPresuestoController);
 // ==========================================
 
 // Crear un presupuesto
-router.post("/", upload.single("pdf"), createPresupuesto);
+router.post("/", createPresupuesto);
 
 // Ruta para actualizar PDF
 router.put("/:presupuestoId/pdf", upload.single("pdf"), addPdfController);

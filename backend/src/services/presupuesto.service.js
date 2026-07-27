@@ -1,5 +1,6 @@
 import { uploadPresupuestoService } from "./files.service.js";
 import { AppError } from "../utils/AppError.util.js";
+
 import {
     createPresupuestoTransaccionRepository,
     findPresupuestoConDetallesRepository,
@@ -10,15 +11,25 @@ import {
     getDashboardDataRepository,
     getBudgetRepository,
 } from "../repositories/presupuesto.repository.js";
-import {
-    verifyUserByIdExistsRepository
-} from "../repositories/usuario.repository.js";
+
+import { verifyUserByIdExistsRepository } from "../repositories/usuario.repository.js";
+
+import { findItemsByIdsRepository } from "../repositories/item.repository.js";
+
 
 /**
  * Estados válidos del presupuesto.
  * Cualquier valor fuera de esta lista será rechazado.
  */
-const ESTADOS_VALIDOS = ["Borrador", "Guardado", "Enviado", "Aceptado", "Rechazado"];
+const ESTADOS_VALIDOS = [
+    "Borrador",
+    "Guardado",
+    "Enviado",
+    "Aceptado",
+    "Rechazado"
+];
+
+
 /**
  * ==================================================
  * SERVICE: Crear presupuesto completo
@@ -28,197 +39,281 @@ export const createPresupuestoCompletoService = async ({
     usuarioId,
     clienteId,
     fechaVencimiento,
-    descripcion,
     estado,
-    detalles,
-    descuentoPorcentaje = 0
+    detalles
 }) => {
-    // 1. Validaciones de negocio
-    // Un presupuesto sin ítems no tiene sentido: cortamos acá antes de tocar
-    // Cloudinary o la base de datos.
-    if (!detalles || detalles.length === 0) {
-        throw new AppError("No se puede generar un presupuesto sin ítems cargados", 400);
-    }
 
-    // Si no viene estado desde el front, arranca como Borrador por defecto.
-    const estadoFinal = estado || "Borrador";
-    // Rechazamos cualquier valor que no esté en la lista blanca de estados
-    // permitidos (evita que llegue un string cualquiera y rompa el CHECK de la DB
-    // con un error feo de Postgres en vez de un error de negocio prolijo).
-    if (!ESTADOS_VALIDOS.includes(estadoFinal)) {
+    // 1. Validaciones de negocio
+    if (!detalles || detalles.length === 0) {
         throw new AppError(
-            `Estado inválido: "${estadoFinal}". Los valores permitidos son: ${ESTADOS_VALIDOS.join(", ")}.`,
+            "No se puede generar un presupuesto sin ítems cargados",
             400
         );
     }
 
-    // 2. Cálculo de subtotales y total en el backend (nunca confiar en el frontend)
-    // Aunque el front ya calculó y mostró estos números en pantalla, NO nos fiamos:
-    // alguien podría mandar un total manipulado directo a la API. Los recalculamos acá.
+
+    const estadoFinal = estado || "Borrador";
+
+
+    if (!ESTADOS_VALIDOS.includes(estadoFinal)) {
+        throw new AppError(
+            `Estado inválido: "${estadoFinal}".`,
+            400
+        );
+    }
+
+
+    // 2. Buscar los items reales del usuario
+    // Traemos nombre y precio actual desde la tabla items.
+    const itemsIds = detalles.map(det => det.item_id);
+
+    const items = await findItemsByIdsRepository(
+        itemsIds,
+        usuarioId
+    );
+
+
+    if (items.length !== detalles.length) {
+        throw new AppError(
+            "Uno o más items no existen o no pertenecen al usuario",
+            400
+        );
+    }
+
+
+    // 3. Crear detalles congelando el precio actual
     let subtotalCalculado = 0;
-    const detallesProcesados = detalles.map((det) => {
-        const itemSubtotal = Number(det.cantidad) * Number(det.precio_unitario);
-        subtotalCalculado += itemSubtotal;
-        // Devolvemos el detalle original + el subtotal ya calculado por línea,
-        // así el repositorio no tiene que recalcular nada, solo insertar.
-        return { ...det, subtotal: itemSubtotal };
+
+
+    const detallesProcesados = detalles.map(det => {
+
+        const item = items.find(
+            i => i.id === det.item_id
+        );
+
+
+        const subtotalItem =
+            Number(det.cantidad) * Number(item.precio);
+
+
+        subtotalCalculado += subtotalItem;
+
+
+        return {
+            item_id:item.id,
+            nombre_item:item.nombre,
+            cantidad:det.cantidad,
+            precio_unitario:item.precio,
+            subtotal:subtotalItem
+        };
+
     });
 
-    // 3. Cálculo de Descuento (maneja 0 o cualquier porcentaje)
-    // Si descuentoPorcentaje es 0, el resultado será 0, lo cual es correcto.
-    const descPorcentaje = Number(descuentoPorcentaje) || 0;
-    const descMonto = subtotalCalculado * (descPorcentaje / 100);
 
-    //4. Total Final
-    const total = subtotalCalculado - descMonto;
 
-    // 5. Delegar la transacción ACID al repositorio
+    // 4. Total final
+    const total = subtotalCalculado;
+
+
+
+    // 5. Delegar transacción al repositorio
     return await createPresupuestoTransaccionRepository({
         usuarioId,
         clienteId,
         fechaVencimiento,
-        descripcion,
-        estado: estadoFinal,
-        subtotal: subtotalCalculado,
-        descuentoPorcentaje: descPorcentaje,
+        estado:estadoFinal,
+        subtotal:subtotalCalculado,
         total,
-        detalles: detallesProcesados
+        detallesProcesados
     });
+
 };
+
+
 
 /**
  * ==================================================
  * SERVICE: Obtener presupuesto por ID
  * ==================================================
  **/
-export const getPresupuestoByIdService = async (presupuestoId, usuarioId) => {
-    // Este service no tiene lógica propia todavía, solo delega al repositorio.
-    // Lo dejamos como función separada (en vez de llamar al repositorio directo
-    // desde el controller) para poder sumarle reglas de negocio más adelante
-    // (ej: chequear permisos, formatear la respuesta) sin tocar el controller.
-    return await findPresupuestoConDetallesRepository(presupuestoId, usuarioId);
+export const getPresupuestoByIdService = async (
+    presupuestoId,
+    usuarioId
+) => {
+
+    return await findPresupuestoConDetallesRepository(
+        presupuestoId,
+        usuarioId
+    );
+
 };
+
+
 
 /**
  * GUARDAR PDF 
  */
 export const addPdfService = async (
-    {
-        usuarioId,
-        presupuestoId,
-    },
-    file,
+{
+    usuarioId,
+    presupuestoId,
+},
+file
 ) => {
 
-    const cliente = await findPresupuestoConClienteRepository(presupuestoId, usuarioId);
+    const cliente =
+        await findPresupuestoConClienteRepository(
+            presupuestoId,
+            usuarioId
+        );
 
-    if(!cliente) throw new AppError("El cliente no existe");
 
-    if (!file) throw new AppError("No se encuentra el archivo");
+    if(!cliente)
+        throw new AppError(
+            "El presupuesto no existe",
+            404
+        );
 
-    //  Subida del PDF a Cloudinary (si se adjuntó uno)
 
-    /** DIVIDIMOS LA CARPETA POR FECHA DE CREACION & NOMBRE DEL CLIENTE*/
-    const nombreDelCliente = `${cliente.cliente_nombre}_${cliente.cliente_apellido}`;
-    const creacionFecha = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-    const uploadResult = await uploadPresupuestoService(file.buffer, nombreDelCliente, creacionFecha);
+    if (!file)
+        throw new AppError(
+            "No se encuentra el archivo"
+        );
+
+
+    const nombreDelCliente =
+        `${cliente.cliente_nombre}_${cliente.cliente_apellido}`;
+
+
+    const creacionFecha =
+        new Date().toISOString().split("T")[0];
+
+
+    const uploadResult =
+        await uploadPresupuestoService(
+            file.buffer,
+            nombreDelCliente,
+            creacionFecha
+        );
+
 
     return await addPdfRepository({
         usuarioId,
-        clienteId,
         presupuestoId,
-        pdf_url: uploadResult.url,
-        pdf_public_id: uploadResult.public_id,
-        estado: 'Guardado'
-    })
-}
+        pdf_url:uploadResult.url,
+        pdf_public_id:uploadResult.public_id,
+        estado:"Guardado"
+    });
+
+};
 
 /**
  * ==================================================
  * SERVICE: FILTRADO POR FECHA ESTADO MONTO Y CLIENTE
  * ==================================================
  **/
-
 export const filtroPresupuestoService = async (
     usuarioId,
     pagina = 1,
     limite = 10,
-    filtro = {},
+    filtro = {}
 ) => {
 
-    // 1. Calcular el desplazamiento (Offset)
     const skip = (pagina - 1) * limite;
 
-    // 2. Llamar al repositorio
-    // NOTA: Asegúrate de que tu repositorio acepte 'limit' y 'offset' 
-    // para que la paginación ocurra en la base de datos (más eficiente)
 
-    const presupuesto = await findPresupuestosConFiltrosRepository(
-        usuarioId,
-        filtros,
-        limite,
-        skip
-    );
+    const presupuestos =
+        await findPresupuestosConFiltrosRepository(
+            usuarioId,
+            filtro,
+            limite,
+            skip
+        );
 
-    // 3. (Opcional pero recomendado) Obtener total para el frontend
-    // Esto es útil para calcular cuántas páginas existen en total
 
-    const total = await contarPresupuestosConFiltrosRepository(usuarioId, filtros);
+    const total =
+        await contarPresupuestosConFiltrosRepository(
+            usuarioId,
+            filtro
+        );
+
 
     return {
         data: presupuestos,
-        meta: {
+        meta:{
             total,
             pagina,
             limite,
-            totalPaginas: Math.ceil(total / limite)
+            totalPaginas:Math.ceil(total / limite)
         }
     };
 
-}
+};
+
+
 
 /**
  * DASHBOARD
  * SUMA TOTAL DE PRESUPUESTO
- * CANTIDAD DE PRESUPUESTO ESTADOS ( GUARDADO, ACEPTADOS, RECHAZO)
- * ACTIVIDAD SEMANAL GUARDADO ACEPTADOS RECHAZADOS
- * LIMITE DE DATOS DE PRESUPUESTOS 5 & PAGINACION
+ * CANTIDAD DE PRESUPUESTO ESTADOS
+ * ACTIVIDAD SEMANAL
  */
+export const getDashboardDataService = async (usuarioId) => {
 
-export const getDashboardDataService = async ( usuarioId ) => {
+    const existeUsuario =
+        await verifyUserByIdExistsRepository(usuarioId);
 
-    // 1. Verificamos si el usuario existe
-    const existeUsuario = await verificarUsuarioPorIdExisteRepository(usuarioId);
 
     if (!existeUsuario) {
-        throw new AppError("El usuario no existe", 404);
+
+        throw new AppError(
+            "El usuario no existe",
+            404
+        );
+
     }
 
-    // 2. Obtenemos todas las estadísticas y la actividad semanal en una sola llamada
-    const stats = await getDashboardDataRepository(usuarioId);
 
-    return stats;
+    return await getDashboardDataRepository(usuarioId);
 
-}
+};
 
-export const getBudgetService = async ( 
-    usuarioId, 
+export const getBudgetService = async (
+    usuarioId,
     page,
-    limit,
+    limit
 ) => {
 
-    // Si el front manda página y límite, calculamos el offset
-    const parsedLimit = limit ? parseInt(limit, 10) : null;
-    const parsedPage = page ? parseInt(page, 10) : 1;
-    const offset = parsedLimit ? (parsedPage - 1) * parsedLimit : 0;
+    const parsedLimit =
+        limit
+        ? parseInt(limit,10)
+        : null;
 
-    const presupuestos = await getBudgetRepository(usuarioId, parsedLimit, offset);
+
+    const parsedPage =
+        page
+        ? parseInt(page,10)
+        : 1;
+
+
+    const offset =
+        parsedLimit
+        ? (parsedPage - 1) * parsedLimit
+        : 0;
+
+
+    const presupuestos =
+        await getBudgetRepository(
+            usuarioId,
+            parsedLimit,
+            offset
+        );
+
 
     return {
-        paginaActual: parsedPage,
-        limite: parsedLimit,
-        data: presupuestos
+        paginaActual:parsedPage,
+        limite:parsedLimit,
+        data:presupuestos
     };
 
-}
-
+};

@@ -35,8 +35,7 @@ export const createPresupuesto = async (req, res, next) => {
         };
 
         const resultado = await createPresupuestoCompletoService(
-            datosPresupuesto,
-            req.file,
+            datosPresupuesto
         );
 
         res.status(201).json({ 

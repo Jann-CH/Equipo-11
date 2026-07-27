@@ -1,131 +1,172 @@
 import pool from "../database/connection.js";
+import { AppError } from "../utils/AppError.util.js";
 
 export const findPresupuestoConClienteRepository = async (presupuestoId, usuarioId) => {
     const query = `
         SELECT
-            p.id, 
+            p.id,
             p.estado,
-            p.cliente_id, 
+            p.cliente_id,
             c.nombre AS cliente_nombre,
             c.apellido AS cliente_apellido,
             c.email AS cliente_email
         FROM presupuestos p
         JOIN clientes c ON p.cliente_id = c.id
-        WHERE p.id = $1 
-          AND p.usuario_id = $2 
-          AND p.deleted_at IS NULL;
+        WHERE p.id = $1
+        AND p.usuario_id = $2
+        AND p.deleted_at IS NULL;
     `;
 
-    const result = await pool.query(query, [presupuestoId, usuarioId]);
+    const result = await pool.query(query,[presupuestoId,usuarioId]);
 
-    // Si no hay ninguna fila (el presupuesto no existe, no es de este usuario,
-    // o está borrado lógicamente), devolvemos null en vez de undefined.
     return result.rows[0] || null;
 };
 
+
 /**
  * ==================================================
- *  Obtiene un presupuesto completo con sus detalles  
- *  y datos del cliente
+ * Obtiene un presupuesto completo con sus detalles
+ * y datos del cliente
  * ==================================================
  */
 
-export const findPresupuestoConDetallesRepository = async (presupuestoId, usuarioId) => {
+export const findPresupuestoConDetallesRepository = async (presupuestoId,usuarioId) => {
+
     const query = `
         SELECT
-            p.id, p.fecha_vencimiento,
-            p.subtotal, p.total, p.estado,
+            p.id,
+            p.numero,
+            p.fecha,
+            p.fecha_vencimiento,
+            p.subtotal,
+            p.total,
+            p.estado,
+            p.observaciones,
+
             c.nombre AS cliente_nombre,
             c.apellido AS cliente_apellido,
 
-            -- JSON_AGG junta todas las filas de detalle_presupuesto de ESTE presupuesto
-            -- en un solo array JSON, para no traer un renglón por cada ítem.
             JSON_AGG(
                 JSON_BUILD_OBJECT(
-                    'id', dp.id,
-                    'item_nombre', i.nombre,
-                    'cantidad', dp.cantidad,
-                    'precio_unitario', dp.precio_unitario,
-                    'subtotal', dp.subtotal
-                -- ORDER BY adentro del JSON_AGG: sin esto, Postgres no garantiza
-                -- el orden de los ítems dentro del array (podría cambiar entre consultas).
-                ) ORDER BY dp.created_at
+                    'id',dp.id,
+                    'item_id',dp.item_id,
+                    'nombre_item',dp.nombre_item,
+                    'cantidad',dp.cantidad,
+                    'precio_unitario',dp.precio_unitario,
+                    'subtotal',dp.subtotal
+                )
+                ORDER BY dp.created_at
             ) AS detalles
 
         FROM presupuestos p
 
-        -- INNER JOIN: si el cliente no existiera no debería pasar nunca
-        -- (cliente_id es NOT NULL y tiene FK), así que este sí puede quedar INNER.
         JOIN clientes c ON p.cliente_id = c.id
 
-        -- LEFT JOIN (antes era JOIN): si el presupuesto todavía no tiene ítems
-        -- cargados (ej. un borrador a medio hacer), igual queremos que aparezca,
-        -- con 'detalles' como un array vacío en vez de que la fila desaparezca entera.
         LEFT JOIN detalle_presupuesto dp ON dp.presupuesto_id = p.id
 
-      
-        -- 'items_id' (así quedó definida en detalle_presupuesto), no 'item_id'.
-        LEFT JOIN item i ON dp.items_id = i.id
+        WHERE p.id = $1
+        AND p.usuario_id = $2
+        AND p.deleted_at IS NULL
 
-        WHERE p.id = $1 AND p.usuario_id = $2 AND p.deleted_at IS NULL
-
-        -- Alcanza con agrupar por p.id: como es la Primary Key de presupuesto,
-        -- Postgres permite traer el resto de columnas de 'p' (fecha_vencimiento,
-        -- subtotal, total, estado) sin listarlas acá, por dependencia funcional.
-        -- c.nombre y c.apellido sí hay que listarlos porque vienen de otra tabla.
-        GROUP BY p.id, c.nombre, c.apellido;
+        GROUP BY p.id,c.nombre,c.apellido;
     `;
 
-    const result = await pool.query(query, [presupuestoId, usuarioId]);
+    const result = await pool.query(query,[presupuestoId,usuarioId]);
 
-    // Si no hay ninguna fila (el presupuesto no existe, no es de este usuario,
-    // o está borrado lógicamente), devolvemos null en vez de undefined.
     return result.rows[0] || null;
 };
 
+
 /**
  * ==================================================
- * REPOSITORY: Crear presupuesto 
+ * REPOSITORY: Crear presupuesto
  * ==================================================
  **/
+
 export const createPresupuestoTransaccionRepository = async ({
     usuarioId,
     clienteId,
     fechaVencimiento,
-    descripcion,
     estado,
     subtotal,
-    descuentoPorcentaje,
     total,
     detallesProcesados,
 }) => {
+
     const client = await pool.connect();
+
     try {
+
         await client.query("BEGIN");
 
-        // 1. Insertar cabecera del presupuesto
-        const { rows: [nuevoPresupuesto] } = await client.query(
-            `INSERT INTO presupuestos
-                (usuario_id, cliente_id, fecha_vencimiento, descripcion, estado, subtotal, descuento_porcentaje, total)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-             RETURNING id, created_at, subtotal, total, estado;`,
-            [usuarioId, clienteId, fechaVencimiento, descripcion, estado, subtotal, descuentoPorcentaje, total]
+        // 1. Generar número de presupuesto por usuario
+        const {rows:[contador]} = await client.query(
+            `
+            SELECT COUNT(*) + 1 AS numero
+            FROM presupuestos
+            WHERE usuario_id = $1;
+            `,
+            [usuarioId]
         );
 
-        // 2. Insertar cada ítem del detalle
-        for (const det of detallesProcesados) {
+        const numero = `P-${String(contador.numero).padStart(3,"0")}`;
+
+
+        // 2. Insertar cabecera del presupuesto
+        const {rows:[nuevoPresupuesto]} = await client.query(
+            `
+            INSERT INTO presupuestos
+            (
+                usuario_id,
+                cliente_id,
+                numero,
+                fecha_vencimiento,
+                estado,
+                subtotal,
+                total
+            )
+            VALUES($1,$2,$3,$4,$5,$6,$7)
+
+            RETURNING
+                id,
+                numero,
+                created_at,
+                subtotal,
+                total,
+                estado;
+            `,
+            [
+                usuarioId,
+                clienteId,
+                numero,
+                fechaVencimiento,
+                estado,
+                subtotal,
+                total
+            ]
+        );
+
+
+        // 3. Insertar cada ítem del detalle
+        for(const det of detallesProcesados){
+
             await client.query(
-                `INSERT INTO detalle_presupuesto
-                    (   presupuesto_id, 
-                        item_id, 
-                        cantidad, 
-                        precio_unitario, 
-                        subtotal
-                    )
-                 VALUES ($1, $2, $3, $4, $5);`,
+                `
+                INSERT INTO detalle_presupuesto
+                (
+                    presupuesto_id,
+                    item_id,
+                    nombre_item,
+                    cantidad,
+                    precio_unitario,
+                    subtotal
+                )
+                VALUES($1,$2,$3,$4,$5,$6);
+                `,
                 [
                     nuevoPresupuesto.id,
                     det.item_id,
+                    det.nombre_item,
                     det.cantidad,
                     det.precio_unitario,
                     det.subtotal
@@ -134,16 +175,23 @@ export const createPresupuestoTransaccionRepository = async ({
         }
 
         await client.query("COMMIT");
-        return { ...nuevoPresupuesto, detalles: detallesProcesados };
 
-    } catch (error) {
+        return {
+            ...nuevoPresupuesto,
+            detalles: detallesProcesados
+        };
+
+    } catch(error){
+
         await client.query("ROLLBACK");
-        // Re-lanzar el error original para que el servicio lo maneje con AppError
         throw error;
+
     } finally {
-        // SIEMPRE liberar la conexión al pool
+
         client.release();
+
     }
+
 };
 
 /**
@@ -162,41 +210,51 @@ export const addPdfRepository = async (dato) => {
         estado
     } = dato;
 
-    // Usamos UPDATE porque el presupuesto ya existe
     const query = `
         UPDATE presupuestos
-        SET pdf_url = $1, 
+        SET
+            pdf_url = $1,
             pdf_public_id = $2,
             estado = $3,
             updated_at = NOW()
-        WHERE id = $4 
-          AND usuario_id = $5
-          AND deleted_at IS NULL
-        RETURNING id, pdf_url, estado;
+
+        WHERE id = $4
+        AND usuario_id = $5
+        AND deleted_at IS NULL
+
+        RETURNING
+            id,
+            pdf_url,
+            estado;
     `;
 
-    const result = await pool.query(query, [
-        pdf_url,
-        pdf_public_id,
-        estado,
-        presupuestoId,
-        usuarioId
-    ]);
+    const result = await pool.query(
+        query,
+        [
+            pdf_url,
+            pdf_public_id,
+            estado,
+            presupuestoId,
+            usuarioId
+        ]
+    );
 
-
-    // Si result.rows.length es 0, significa que no se encontró el presupuesto 
-    // o el usuario no tiene permisos sobre él.
-    if (result.rows.length === 0) {
-        throw new AppError("No se pudo actualizar el PDF: presupuesto no encontrado o no autorizado", 404);
+    // Si no encuentra presupuesto o no pertenece al usuario
+    if(result.rows.length === 0){
+        throw new AppError(
+            "No se pudo actualizar el PDF",
+            404
+        );
     }
 
     return result.rows[0];
-}
+
+};
 
 
 /**
  * =================================================
- * REPOSITORY: FILTROS POR FECHA, ESTADO Y CLIENTE 
+ * REPOSITORY: FILTROS POR FECHA, ESTADO Y CLIENTE
  * =================================================
  */
 
@@ -206,199 +264,300 @@ export const findPresupuestosConFiltrosRepository = async (
     limite,
     skip
 ) => {
-    // 1. Array para guardar las condiciones (WHERE)
-    const conditions = ['usuario_id = $1', 'deleted_at IS NULL'];
+
+    const conditions = [
+        "p.usuario_id = $1",
+        "p.deleted_at IS NULL"
+    ];
+
     const values = [usuarioId];
 
-    // Función auxiliar para agregar condiciones de forma limpia
-    const addFilter = (cond, val) => {
-        conditions.push(`${cond} $${values.length + 1}`);
-        values.push(val);
-    };
 
-    // 2. Filtro dinámico: Si el cliente envía 'estado', lo sumamos a la query
-    if (filtros.estado) {
-        conditions.push(`estado = $${values.length + 1}`);
+    if(filtros.estado){
+        conditions.push(
+            `p.estado = $${values.length + 1}`
+        );
+
         values.push(filtros.estado);
     }
 
-    if (filtros.busqueda) {
-        conditions.push(`(c.nombre ILIKE $${values.length + 1} OR c.apellido ILIKE $${values.length + 1})`);
+
+    if(filtros.busqueda){
+
+        conditions.push(
+            `(c.nombre ILIKE $${values.length + 1}
+            OR c.apellido ILIKE $${values.length + 1})`
+        );
+
         values.push(`%${filtros.busqueda}%`);
     }
 
-    if (filtros.fechaInicio) {
-        conditions.push(`created_at >= $${values.length + 1}`);
-        values.push(filtros.fechaInicio);
-    }
 
-    if (filtros.montoMinimo) {
-        conditions.push(`p.total >= $${values.length + 1}`);
-        values.push(filtros.montoMinimo);
-    }
-
-    if (filtros.montoMaximo) {
-        conditions.push(`p.total <= $${values.length + 1}`);
-        values.push(filtros.montoMaximo);
-    }
-
-    // 3. Construcción final
     const query = `
-        SELECT p.*, c.nombre, c.apellido 
+        SELECT
+            p.*,
+            c.nombre AS cliente_nombre,
+            c.apellido AS cliente_apellido
+
         FROM presupuestos p
+
         JOIN clientes c ON p.cliente_id = c.id
-        WHERE ${conditions.join(' AND ')}
-        ORDER BY created_at DESC
-        LIMIT $${values.length + 1} OFFSET $${values.length + 2};;
+
+        WHERE ${conditions.join(" AND ")}
+
+        ORDER BY p.created_at DESC
+
+        LIMIT $${values.length + 1}
+        OFFSET $${values.length + 2};
     `;
 
-    values.push(limite, skip);
 
-    const result = await pool.query(query, values);
+    values.push(limite,skip);
+
+
+    const result = await pool.query(query,values);
+
     return result.rows;
+
 };
+
 
 
 export const contarPresupuestosConFiltrosRepository = async (
     usuarioId,
     filtros
 ) => {
-    const conditions = ['p.usuario_id = $1', 'p.deleted_at IS NULL'];
+
+    const conditions = [
+        "p.usuario_id = $1",
+        "p.deleted_at IS NULL"
+    ];
+
     const values = [usuarioId];
 
-    if (filtros.estado) {
-        conditions.push(`p.estado = $${values.length + 1}`);
+
+    if(filtros.estado){
+
+        conditions.push(
+            `p.estado = $${values.length + 1}`
+        );
+
         values.push(filtros.estado);
+
     }
-    if (filtros.busqueda) {
-        conditions.push(`(c.nombre ILIKE $${values.length + 1} OR c.apellido ILIKE $${values.length + 1})`);
-        values.push(`%${filtros.busqueda}%`);
-    }
-    if (filtros.fechaInicio) {
-        conditions.push(`p.created_at >= $${values.length + 1}`);
-        values.push(filtros.fechaInicio);
-    }
-    if (filtros.montoMinimo) {
-        conditions.push(`p.total >= $${values.length + 1}`);
-        values.push(filtros.montoMinimo);
-    }
-    if (filtros.montoMaximo) {
-        conditions.push(`p.total <= $${values.length + 1}`);
-        values.push(filtros.montoMaximo);
-    }
+
 
     const query = `
-        SELECT COUNT(*) 
+        SELECT COUNT(*)
         FROM presupuestos p
-        JOIN clientes c ON p.cliente_id = c.id
-        WHERE ${conditions.join(' AND ')};
+        WHERE ${conditions.join(" AND ")};
     `;
 
-    const result = await pool.query(query, values);
-    // Retornamos el número convertido a entero
-    return parseInt(result.rows[0].count, 10);
+
+    const result = await pool.query(query,values);
+
+
+    // Retornamos cantidad como número
+    return parseInt(
+        result.rows[0].count,
+        10
+    );
+
 };
 
 /**
  * DASHBOARD
  * SUMA TOTAL DE PRESUPUESTO
- * CANTIDAD DE PRESUPUESTO ESTADOS ( GUARDADO, ACEPTADOS, RECHAZO)
- * ACTIVIDAD SEMANAL GUARDADO ACEPTADOS RECHAZADOS
- * 
+ * CANTIDAD DE PRESUPUESTO ESTADOS
+ * ACTIVIDAD SEMANAL
  */
 
 export const getDashboardDataRepository = async (usuarioId) => {
+
     const query = `
         WITH estadisticas AS (
-            SELECT 
-                COALESCE(SUM(total), 0) AS suma_total,
-                COUNT(*) FILTER (WHERE estado = 'Guardado') AS guardados,
-                COUNT(*) FILTER (WHERE estado = 'Aceptado') AS aceptados,
-                COUNT(*) FILTER (WHERE estado = 'Rechazado') AS rechazados,
+            SELECT
+                COALESCE(SUM(total),0) AS suma_total,
+
+                COUNT(*) FILTER(
+                    WHERE estado = 'Guardado'
+                ) AS guardados,
+
+                COUNT(*) FILTER(
+                    WHERE estado = 'Aceptado'
+                ) AS aceptados,
+
+                COUNT(*) FILTER(
+                    WHERE estado = 'Rechazado'
+                ) AS rechazados,
+
                 COUNT(*) AS total_presupuestos
+
             FROM presupuestos
-            WHERE usuario_id = $1 AND deleted_at IS NULL
+
+            WHERE usuario_id = $1
+            AND deleted_at IS NULL
         ),
+
         actividad AS (
-            SELECT 
-                TO_CHAR(created_at, 'Dy') AS dia_corto,
+            SELECT
+                TO_CHAR(created_at,'Dy') AS dia_corto,
+
                 EXTRACT(ISODOW FROM created_at) AS dia_num,
-                COUNT(*) FILTER (WHERE estado = 'Guardado') AS guardados,
-                COUNT(*) FILTER (WHERE estado = 'Aceptado') AS aceptados,
-                COUNT(*) FILTER (WHERE estado = 'Rechazado') AS rechazados
+
+                COUNT(*) FILTER(
+                    WHERE estado='Guardado'
+                ) AS guardados,
+
+                COUNT(*) FILTER(
+                    WHERE estado='Aceptado'
+                ) AS aceptados,
+
+                COUNT(*) FILTER(
+                    WHERE estado='Rechazado'
+                ) AS rechazados
+
             FROM presupuestos
-            WHERE usuario_id = $1 
-              AND deleted_at IS NULL
-              AND created_at >= NOW() - INTERVAL '7 days'
-            GROUP BY dia_num, dia_corto
-            ORDER BY dia_num ASC
+
+            WHERE usuario_id = $1
+            AND deleted_at IS NULL
+            AND created_at >= NOW() - INTERVAL '7 days'
+
+            GROUP BY dia_num,dia_corto
+
+            ORDER BY dia_num
         )
-        SELECT 
-            (SELECT ROW_TO_JSON(estadisticas) FROM estadisticas) AS stats,
-            (SELECT COALESCE(JSON_AGG(actividad), '[]'::json) FROM actividad) AS semanal;
+
+        SELECT
+            (
+                SELECT ROW_TO_JSON(estadisticas)
+                FROM estadisticas
+            ) AS stats,
+
+            (
+                SELECT COALESCE(
+                    JSON_AGG(actividad),
+                    '[]'::json
+                )
+                FROM actividad
+            ) AS semanal;
     `;
 
-    try {
-        const { rows } = await pool.query(query, [usuarioId]);
-        const resultado = rows[0];
 
-        // Parseamos y formateamos los datos listos para el front
-        return {
-            estadisticas: {
-                sumaTotal: parseFloat(resultado.stats.suma_total || 0),
-                guardados: parseInt(resultado.stats.guardados || 0, 10),
-                aceptados: parseInt(resultado.stats.aceptados || 0, 10),
-                rechazados: parseInt(resultado.stats.rechazados || 0, 10),
-                totalPresupuestos: parseInt(resultado.stats.total_presupuestos || 0, 10)
-            },
-            actividadSemanal: resultado.semanal.map(row => ({
-                dia: row.dia_corto,
-                pendientes: parseInt(row.guardados, 10),
-                aprobados: parseInt(row.aceptados, 10),
-                rechazados: parseInt(row.rechazados, 10)
-            }))
-        };
-    } catch (error) {
-        console.error("Error al obtener los datos del dashboard en una sola query:", error);
-        throw error;
-    }
+    const {rows} = await pool.query(
+        query,
+        [usuarioId]
+    );
+
+
+    const resultado = rows[0];
+
+
+    return {
+
+        estadisticas:{
+
+            sumaTotal:Number(
+                resultado.stats.suma_total
+            ),
+
+            guardados:Number(
+                resultado.stats.guardados
+            ),
+
+            aceptados:Number(
+                resultado.stats.aceptados
+            ),
+
+            rechazados:Number(
+                resultado.stats.rechazados
+            ),
+
+            totalPresupuestos:Number(
+                resultado.stats.total_presupuestos
+            )
+
+        },
+
+        actividadSemanal:
+        resultado.semanal
+
+    };
+
 };
 
-export const getBudgetRepository = async (usuarioId, limit = null, offset = 0) => {
+
+
+export const getBudgetRepository = async (
+    usuarioId,
+    limit=null,
+    offset=0
+) => {
+
+
     let query = `
-        SELECT 
-            u.nombre AS usuario_nombre, 
-            u.apellido AS usuario_apellido,
-            p.id AS presupuesto_id, 
-            p.fecha_vencimiento, 
-            p.total, 
+
+        SELECT
+
+            p.id AS presupuesto_id,
+            p.numero,
+            p.fecha,
+            p.total,
             p.estado,
-            c.nombre AS cliente_nombre, 
+
+            c.nombre AS cliente_nombre,
             c.apellido AS cliente_apellido,
-            STRING_AGG(i.nombre, ', ') AS nombres_items
-        FROM presupuestos p 
-        INNER JOIN usuarios u ON p.usuario_id = u.id
-        INNER JOIN clientes c ON p.cliente_id = c.id
-        LEFT JOIN detalle_presupuesto dp ON p.id = dp.presupuesto_id
-        LEFT JOIN items i ON dp.items_id = i.id
-        WHERE p.usuario_id = $1 AND p.deleted_at IS NULL
-        GROUP BY u.id, p.id, c.id
+
+            STRING_AGG(
+                dp.nombre_item,
+                ', '
+            ) AS nombres_items
+
+        FROM presupuestos p
+
+        INNER JOIN clientes c
+            ON p.cliente_id = c.id
+
+        LEFT JOIN detalle_presupuesto dp
+            ON p.id = dp.presupuesto_id
+
+        WHERE p.usuario_id=$1
+        AND p.deleted_at IS NULL
+
+        GROUP BY
+            p.id,
+            c.id
+
         ORDER BY p.created_at DESC
+
     `;
 
-    const params = [usuarioId];
 
-    // Si mandas un límite (por ejemplo, 5 para la vista inicial), lo agregamos dinámicamente
-    if (limit !== null) {
-        query += ` LIMIT $2 OFFSET $3`;
-        params.push(limit, offset);
+    const params = [
+        usuarioId
+    ];
+
+
+    // Si se manda límite agregamos paginación
+    if(limit !== null){
+
+        query += `
+            LIMIT $2 OFFSET $3
+        `;
+
+        params.push(
+            limit,
+            offset
+        );
     }
 
-    try {
-        const { rows } = await pool.query(query, params);
-        return rows;
-    } catch (error) {
-        console.error("Error al obtener los presupuestos:", error);
-        throw error;
-    }
+
+    const {rows} = await pool.query(
+        query,
+        params
+    );
+
+
+    return rows;
+
 };
