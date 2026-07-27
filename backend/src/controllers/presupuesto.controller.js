@@ -29,8 +29,10 @@ export const createPresupuesto = async (req, res, next) => {
         const datosPresupuesto = {
             usuarioId,
             clienteId: req.body.cliente_id,
+            fecha: req.body.fecha,
             fechaVencimiento: req.body.fecha_vencimiento,
             estado: req.body.estado,
+            observaciones: req.body.observaciones,
             detalles,
         };
 
