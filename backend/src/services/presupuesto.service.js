@@ -157,29 +157,19 @@ export const filtroPresupuestoService = async (usuarioId, pagina = 1, limite = 1
  * CANTIDAD DE PRESUPUESTO ESTADOS
  * ACTIVIDAD SEMANAL
  */
-<<<<<<< HEAD
-export const getDashboardDataService = async (usuarioId) => {
-    const existeUsuario = await verifyUserByIdExistsRepository(usuarioId);
-=======
+
 
 export const getDashboardDataService = async ( usuarioId, periodo ) => {
 
     // 1. Verificamos si el usuario existe
     const existeUsuario = await verificarUsuarioPorIdExisteRepository(usuarioId);
->>>>>>> fad313c (FIX: HOME)
 
     if (!existeUsuario) {
         throw new AppError("El usuario no existe", 404);
     }
-
-<<<<<<< HEAD
     return await getDashboardDataRepository(usuarioId);
 };
-=======
-    // 2. Obtenemos todas las estadísticas y la actividad semanal en una sola llamada
-    const stats = await getDashboardDataRepository(usuarioId, periodo);
->>>>>>> fad313c (FIX: HOME)
-
+   
 export const getBudgetService = async (usuarioId, page, limit) => {
     const parsedLimit = limit ? parseInt(limit, 10) : null;
 
