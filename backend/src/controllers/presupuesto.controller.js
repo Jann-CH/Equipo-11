@@ -146,7 +146,8 @@ export const filtroPresuestoController = async (req, res, next) => {
 export const getDashboardController = async (req, res, next) => {
     try{
         const usuarioId = req.auth.id;
-        const data = await getDashboardDataService(usuarioId);
+        const { periodo = 'semanal' } = req.query;
+        const data = await getDashboardDataService(usuarioId, periodo);
         res.status(200).json({
             success: true,
             data,

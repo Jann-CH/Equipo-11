@@ -280,7 +280,25 @@ export const contarPresupuestosConFiltrosRepository = async (usuarioId, filtros)
  * CANTIDAD DE PRESUPUESTO ESTADOS
  * ACTIVIDAD SEMANAL
  */
-export const getDashboardDataRepository = async (usuarioId) => {
+
+
+export const getDashboardDataRepository = async (usuarioId, periodo = 'semanal') => {
+    // Definimos el intervalo y el formato de agrupación según el botón presionado
+    let filtroFecha = "created_at >= NOW() - INTERVAL '7 days'";
+    let agrupacion = "TO_CHAR(created_at, 'Dy'), EXTRACT(ISODOW FROM created_at)";
+    let orden = "dia_num ASC";
+
+    if (periodo === 'diario') {
+        // Último día o desglose por hora del día actual
+        filtroFecha = "created_at >= CURRENT_DATE";
+        agrupacion = "TO_CHAR(created_at, 'HH24:00')";
+        orden = "dia_corto ASC";
+    } else if (periodo === 'mensual') {
+        // Últimos 30 días o agrupado por semana/mes
+        filtroFecha = "created_at >= NOW() - INTERVAL '30 days'";
+        agrupacion = "TO_CHAR(created_at, 'DD/MM')";
+        orden = "dia_corto ASC";
+    }
     const query = `
         WITH estadisticas AS (
             SELECT
@@ -295,18 +313,18 @@ export const getDashboardDataRepository = async (usuarioId) => {
         ),
 
         actividad AS (
-            SELECT
-                TO_CHAR(created_at,'Dy') AS dia_corto,
-                EXTRACT(ISODOW FROM created_at) AS dia_num,
-                COUNT(*) FILTER(WHERE estado='Guardado') AS guardados,
-                COUNT(*) FILTER(WHERE estado='Aceptado') AS aceptados,
-                COUNT(*) FILTER(WHERE estado='Rechazado') AS rechazados
+            SELECT 
+                ${agrupacion} AS dia_corto,
+                MIN(EXTRACT(EPOCH FROM created_at)) AS dia_num,
+                COUNT(*) FILTER (WHERE estado = 'Guardado') AS guardados,
+                COUNT(*) FILTER (WHERE estado = 'Aceptado') AS aceptados,
+                COUNT(*) FILTER (WHERE estado = 'Rechazado') AS rechazados
             FROM presupuestos
-            WHERE usuario_id = $1
-            AND deleted_at IS NULL
-            AND created_at >= NOW() - INTERVAL '7 days'
-            GROUP BY dia_num,dia_corto
-            ORDER BY dia_num
+            WHERE usuario_id = $1 
+              AND deleted_at IS NULL
+              AND ${filtroFecha}
+            GROUP BY dia_corto
+            ORDER BY ${orden}
         )
 
         SELECT
@@ -314,30 +332,34 @@ export const getDashboardDataRepository = async (usuarioId) => {
             (SELECT COALESCE(JSON_AGG(actividad), '[]'::json) FROM actividad) AS semanal;
     `;
 
-    const {rows} = await pool.query(query, [usuarioId]);
-
+    const { rows } = await pool.query(query, [usuarioId]);
     const resultado = rows[0];
 
     return {
         estadisticas: {
-            sumaTotal: Number(resultado.stats.suma_total),
-            guardados: Number(resultado.stats.guardados),
-            aceptados: Number(resultado.stats.aceptados),
-            rechazados: Number(resultado.stats.rechazados),
-            totalPresupuestos: Number(resultado.stats.total_presupuestos)
+            sumaTotal: parseFloat(resultado.stats.suma_total || 0),
+            guardados: parseInt(resultado.stats.guardados || 0, 10),
+            aceptados: parseInt(resultado.stats.aceptados || 0, 10),
+            rechazados: parseInt(resultado.stats.rechazados || 0, 10),
+            totalPresupuestos: parseInt(resultado.stats.total_presupuestos || 0, 10)
         },
-
-        actividadSemanal: resultado.semanal
+        actividadSemanal: resultado.semanal.map(row => ({
+            dia: row.dia_corto,
+            pendientes: parseInt(row.guardados, 10),
+            aprobados: parseInt(row.aceptados, 10),
+            rechazados: parseInt(row.rechazados, 10)
+        }))
     };
 };
 
 export const getBudgetRepository = async (usuarioId, limit = null, offset = 0) => {
     let query = `
-        SELECT
-            p.id AS presupuesto_id,
+        SELECT 
+            p.id AS presupuesto_id, 
             p.numero,
             p.fecha,
-            p.total,
+            p.fecha_vencimiento, 
+            p.total, 
             p.estado,
             c.nombre AS cliente_nombre,
             c.apellido AS cliente_apellido,
