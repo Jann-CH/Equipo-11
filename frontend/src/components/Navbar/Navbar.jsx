@@ -8,7 +8,7 @@ import {
   HomeIcon as HomeIconOutline,
   PlusCircleIcon as PlusCircleIconOutline,
   ListBulletIcon as ListBulletIconOutline,
-  UserIcon as UserIconOutline
+  UserIcon as UserIconOutline,
 } from "@heroicons/react/24/outline";
 
 // Importamos la versión solid para los estados activos
@@ -16,7 +16,7 @@ import {
   HomeIcon as HomeIconSolid,
   PlusCircleIcon as PlusCircleIconSolid,
   ListBulletIcon as ListBulletIconSolid,
-  UserIcon as UserIconSolid
+  UserIcon as UserIconSolid,
 } from "@heroicons/react/24/solid";
 
 export const Navbar = () => {
@@ -25,8 +25,8 @@ export const Navbar = () => {
   const isActive = (path) => {
     if (!pathname) return false;
 
-    if (path === "/")
-      return pathname === "/" || pathname === "";
+    // Si la ruta es /home, validamos que coincida exactamente
+    if (path === "/home") return pathname === "/home" || pathname === "/";
 
     return pathname === path || pathname.startsWith(path + "/");
   };
@@ -46,8 +46,8 @@ export const Navbar = () => {
     <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 py-2 px-6 z-50">
       <div className="flex justify-between items-center max-w-md mx-auto">
         {/* --- HOME (Cuadro azul al seleccionar) --- */}
-        <Link href="/" className={getBoxLinkStyles("/")}>
-          {isActive("/") ? (
+        <Link href="/home" className={getBoxLinkStyles("/")}>
+          {isActive("/home") ? (
             <HomeIconSolid className="h-7 w-7" />
           ) : (
             <HomeIconOutline className="h-7 w-7" />

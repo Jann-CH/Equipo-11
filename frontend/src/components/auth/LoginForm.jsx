@@ -25,7 +25,7 @@ export const LoginForm = () => {
   const onSubmit = async (data) => {
     try {
       await loginService(data);
-      router.push("/perfil");
+      router.push("/home");
     } catch (error) {
       setError("password", {
         type: "manual",
