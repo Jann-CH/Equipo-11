@@ -53,7 +53,7 @@ export const ClientesRecientes = ({
                 </div>
                 
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-bold text-[#0B376D] text-base truncate max-w-[160px]">
+                  <span className="font-bold text-[#0B376D] text-base truncate max-w-[200px]">
                     {item?.cliente_nombre ?? "Cliente"}{" "}
                     {item?.cliente_apellido ?? ""}
                   </span>

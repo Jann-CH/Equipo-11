@@ -20,7 +20,7 @@ export default function Home() {
 
   if (loading && !data) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center w-full max-w-md mx-auto p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center w-full max-w-xl mx-auto p-4">
         <span className="text-sm text-black/55 font-medium">Cargando dashboard...</span>
       </div>
     );
@@ -28,7 +28,7 @@ export default function Home() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center w-full max-w-md mx-auto p-4 text-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center w-full max-w-xl mx-auto p-4 text-center">
         <span className="text-sm text-red-500 font-medium">{error}</span>
       </div>
     );
@@ -38,8 +38,8 @@ export default function Home() {
   const actividadSemanal = data?.actividadSemanal || [];
 
   return (
-    <div className="min-h-screen bg-gray-50 w-full max-w-md mx-auto px-4 py-6 flex flex-col justify-between pb-28">
-      <div className="flex flex-col gap-4 w-full flex-1">
+    <div className="min-h-screen bg-gray-50 w-full max-w-xl mx-auto px-5 py-6 flex flex-col justify-between pb-28">
+      <div className="flex flex-col gap-5 w-full flex-1">
         
         <DateAndImg 
           nombre={estadisticas.usuarioNombre} 
@@ -59,7 +59,6 @@ export default function Home() {
           cambiarPeriodo={cambiarPeriodo}
         />
 
-        {/* El botón "Ver más" de este componente redirigirá limpiamente a /home/historial */}
         <ClientesRecientes 
           presupuestos={listaData || []} 
           paginaActual={pagina}
