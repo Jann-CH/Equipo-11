@@ -9,9 +9,10 @@ import { useFiltroPresupuestos } from "./hooks/usePresupuestosLista"
 
 export default function Home() {
   const { data, loading, error, periodo, cambiarPeriodo } = useDashboard();
-  const { 
+const { 
     presupuestos: listaData, 
-    paginaActual: pagina,
+    paginaActual: pagina, 
+    totalPaginas, 
     cambiarPagina, 
     loading: listaLoading 
   } = useFiltroPresupuestos(5);

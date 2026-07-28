@@ -42,7 +42,7 @@ export const ClientesRecientes = ({
             >
               <div className="flex flex-col gap-0.5">
                 <span className="font-bold text-[#013364] text-sm">
-                  {item.cliente_nombre} {item.cliente_apellido}
+                  {item?.cliente_nombre ?? "Cliente"} {item?.cliente_apellido ?? ""}
                 </span>
                 <span className="text-black/50 text-[11px] truncate max-w-[180px]">
                   {item.nombres_items || "Sin items"}
