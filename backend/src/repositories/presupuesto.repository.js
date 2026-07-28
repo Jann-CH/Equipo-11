@@ -309,7 +309,7 @@ export const getDashboardDataRepository = async (usuarioId, periodo = 'semanal')
                 COUNT(*) AS total_presupuestos,
                 u.nombre AS usuario_nombre,
                 u.apellido AS usuario_apellido
-            FROM presupuestos
+            FROM presupuestos p
             JOIN usuarios u ON p.usuario_id = u.id
             WHERE usuario_id = $1
             AND deleted_at IS NULL

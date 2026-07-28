@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { getPresupuestosFiltroService } from "@/services/presupuesto.service"; // Ajusta tu ruta
 
 export function useFiltroPresupuestos(initialLimite = 10) {
+  
   const [pagina, setPagina] = useState(1);
   const [limite, setLimite] = useState(initialLimite);
   const [filtros, setFiltros] = useState({});
