@@ -5,11 +5,11 @@ import { TotalActivo } from "./components/TotalActivo";
 import { ActividadSemanal } from "./components/ActividadSemanal";
 import { ClientesRecientes } from "../ui/ClientesRecientes";
 import { useDashboard } from "./hooks/useDashboard";
-import { useFiltroPresupuestos } from "./hooks/usePresupuestosLista"
+import { useFiltroPresupuestos } from "./hooks/usePresupuestosLista";
 
 export default function Home() {
   const { data, loading, error, periodo, cambiarPeriodo } = useDashboard();
-const { 
+  const { 
     presupuestos: listaData, 
     paginaActual: pagina, 
     totalPaginas, 
@@ -17,60 +17,63 @@ const {
     loading: listaLoading 
   } = useFiltroPresupuestos(5);
 
-  // Si está cargando por primera vez o hay un error, puedes mostrar indicadores visuales
   if (loading && !data) {
     return (
-      <div className="relative w-[375px] h-[935px] bg-white flex items-center justify-center mx-auto shadow-2xl font-['Lato']">
-        <span className="text-sm text-black/50">Cargando dashboard...</span>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center w-full max-w-md mx-auto p-4">
+        <span className="text-sm text-black/55 font-medium">Cargando dashboard...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="relative w-[375px] h-[935px] bg-white flex items-center justify-center mx-auto shadow-2xl font-['Lato'] px-4 text-center">
-        <span className="text-sm text-red-500">{error}</span>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center w-full max-w-md mx-auto p-4 text-center">
+        <span className="text-sm text-red-500 font-medium">{error}</span>
       </div>
     );
   }
 
-  // Extraemos las propiedades de la respuesta del backend
   const estadisticas = data?.estadisticas || {};
   const actividadSemanal = data?.actividadSemanal || [];
 
   return (
-    <div className="relative w-[375px] h-[935px] bg-white overflow-hidden mx-auto shadow-2xl font-['Lato']">
-      {/* Perfil / Usuario */}
-      <DateAndImg
-       nombre={estadisticas.usuarioNombre} 
-       apellido={estadisticas.usuarioApellido}
-      />
+    <div className="min-h-screen bg-gray-50 w-full max-w-md mx-auto px-4 py-6 flex flex-col justify-between pb-28">
+      
+      {/* Contenedor general en columna que distribuye el espacio disponible */}
+      <div className="flex flex-col gap-4 w-full flex-1">
+        
+        {/* Perfil / Usuario */}
+        <DateAndImg 
+          nombre={estadisticas.usuarioNombre} 
+          apellido={estadisticas.usuarioApellido}
+        />
 
-      {/* Tarjeta Principal: Total Activo */}
+        {/* Tarjeta Principal: Total Activo */}
+        <TotalActivo 
+          sumaTotal={estadisticas.sumaTotal}
+          totalPresupuestos={estadisticas.totalPresupuestos}
+          aceptados={estadisticas.aceptados}
+          rechazados={estadisticas.rechazados}
+        />
 
-      <TotalActivo 
-        sumaTotal={estadisticas.sumaTotal}
-        totalPresupuestos={estadisticas.totalPresupuestos}
-        aceptados={estadisticas.aceptados}
-        rechazados={estadisticas.rechazados}
-      />
+        {/* Actividad Semanal (Gráfico) */}
+        <ActividadSemanal 
+          actividadSemanal={actividadSemanal}
+          periodo={periodo}
+          cambiarPeriodo={cambiarPeriodo}
+        />
 
-      {/* Actividad Semanal (Gráfico) */}
+        {/* Sección Recientes & Lista */}
+        <ClientesRecientes 
+          presupuestos={listaData || []} 
+          paginaActual={pagina}
+          totalPaginas={totalPaginas}
+          cambiarPagina={cambiarPagina}
+          loading={listaLoading}
+          esVistaCompleta={false} 
+        />
 
-      <ActividadSemanal 
-        actividadSemanal={actividadSemanal}
-        periodo={periodo}
-        cambiarPeriodo={cambiarPeriodo}
-      />
-
-      {/* Sección Recientes & Lista */}
-      <ClientesRecientes 
-        presupuestos={listaData || []} 
-        paginaActual={pagina}
-        cambiarPagina={cambiarPagina}
-        loading={listaLoading}
-        esVistaCompleta={false} 
-      />
+      </div>
     </div>
   );
 }

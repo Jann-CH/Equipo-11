@@ -8,6 +8,7 @@
  **/
 
 export const PROTECTED_ROUTES = [
+  '/home',
   "/dashboard",
   "/clientes",
   "/items",

@@ -283,40 +283,36 @@ export const contarPresupuestosConFiltrosRepository = async (usuarioId, filtros)
 
 
 export const getDashboardDataRepository = async (usuarioId, periodo = 'semanal') => {
-    // Definimos el intervalo y el formato de agrupación según el botón presionado
     let filtroFecha = "created_at >= NOW() - INTERVAL '7 days'";
     let agrupacion = "TO_CHAR(created_at, 'Dy')";
-    let ordenNumero = "EXTRACT(ISODOW FROM MIN(created_at)) ASC"
+    let ordenNumero = "EXTRACT(ISODOW FROM MIN(created_at)) ASC";
 
     if (periodo === 'diario') {
-        // Último día o desglose por hora del día actual
         filtroFecha = "created_at >= CURRENT_DATE";
         agrupacion = "TO_CHAR(created_at, 'HH24:00')";
         ordenNumero = "MIN(created_at) ASC";
     } else if (periodo === 'mensual') {
-        // Últimos 30 días o agrupado por semana/mes
         filtroFecha = "created_at >= NOW() - INTERVAL '30 days'";
         agrupacion = "TO_CHAR(created_at, 'DD/MM')";
         ordenNumero = "MIN(created_at) ASC";
     }
+
     const query = `
         WITH estadisticas AS (
             SELECT
-                COALESCE(SUM(total),0) AS suma_total,
-                COUNT(*) FILTER(WHERE estado = 'Guardado') AS guardados,
-                COUNT(*) FILTER(WHERE estado = 'Aceptado') AS aceptados,
-                COUNT(*) FILTER(WHERE estado = 'Rechazado') AS rechazados,
-                COUNT(*) AS total_presupuestos,
+                COALESCE(SUM(p.total), 0) AS suma_total,
+                COUNT(p.id) FILTER(WHERE p.estado = 'Guardado') AS guardados,
+                COUNT(p.id) FILTER(WHERE p.estado = 'Aceptado') AS aceptados,
+                COUNT(p.id) FILTER(WHERE p.estado = 'Rechazado') AS rechazados,
+                COUNT(p.id) AS total_presupuestos,
                 u.nombre AS usuario_nombre,
                 u.apellido AS usuario_apellido
-            FROM presupuestos p
-            JOIN usuarios u ON p.usuario_id = u.id
-            WHERE usuario_id = $1
-            AND p.deleted_at IS NULL
+            FROM usuarios u
+            LEFT JOIN presupuestos p ON u.id = p.usuario_id AND p.deleted_at IS NULL
+            WHERE u.id = $1
             AND u.deleted_at IS NULL
             GROUP BY u.nombre, u.apellido
         ),
-
         actividad AS (
             SELECT 
                 ${agrupacion} AS dia_corto,
@@ -330,28 +326,26 @@ export const getDashboardDataRepository = async (usuarioId, periodo = 'semanal')
             GROUP BY dia_corto
             ORDER BY ${ordenNumero}
         )
-
         SELECT
             (SELECT ROW_TO_JSON(estadisticas) FROM estadisticas) AS stats,
             (SELECT COALESCE(JSON_AGG(actividad), '[]'::json) FROM actividad) AS semanal;
     `;
 
     const { rows } = await pool.query(query, [usuarioId]);
-    const resultado = rows[0];
-
+    const resultado = rows[0] || {};
     const statsData = resultado.stats || {};
 
     return {
         estadisticas: {
-            sumaTotal:         parseFloat(statsData.suma_total       || 0),
-            guardados:         parseInt(statsData.guardados          || 0, 10),
-            aceptados:         parseInt(statsData.aceptados          || 0, 10),
-            rechazados:        parseInt(statsData.rechazados         || 0, 10),
+            sumaTotal: parseFloat(statsData.suma_total || 0),
+            guardados: parseInt(statsData.guardados || 0, 10),
+            aceptados: parseInt(statsData.aceptados || 0, 10),
+            rechazados: parseInt(statsData.rechazados || 0, 10),
             totalPresupuestos: parseInt(statsData.total_presupuestos || 0, 10),
-            usuarioNombre:     statsData.usuario_nombre   || "", 
-            usuarioApellido:   statsData.usuario_apellido || "", 
+            usuarioNombre: statsData.usuario_nombre || "",
+            usuarioApellido: statsData.usuario_apellido || ""
         },
-        actividadSemanal: resultado.semanal.map(row => ({
+        actividadSemanal: (resultado.semanal || []).map(row => ({
             dia: row.dia_corto,
             pendientes: parseInt(row.guardados, 10),
             aprobados: parseInt(row.aceptados, 10),

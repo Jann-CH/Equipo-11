@@ -1,24 +1,34 @@
+"use client";
 import Image from "next/image";
 
 export const DateAndImg = ({ nombre, apellido }) => {
   return (
-    <>
-      <div className="absolute w-[261px] h-[52px] left-[7px] top-[70px] bg-white overflow-hidden rounded-tl-[10px] rounded-tr-[20px] rounded-br-[20px] rounded-bl-[10px] outline outline-1 outline-[#718EBF]">
-        <div className="absolute w-[213px] left-[31px] top-[5px] flex justify-center items-center gap-[50px]">
+    <div className="w-full h-[64px] bg-white border border-[#DFEAF9] shadow-sm rounded-full px-5 flex items-center justify-between">
+      
+      {/* Contenedor unificado: Logo + Nombre */}
+      <div className="flex items-center gap-3.5">
+        
+        {/* Imagen del Logo */}
+        <div className="w-11 h-11 relative flex-shrink-0 overflow-hidden rounded-full border border-gray-100 flex items-center justify-center bg-white">
           <Image
-            src="/logo.png"
+            src={"/logo.png"}
             alt="Logo InnovaLab"
-            width={130}
-            height={130}
+            width={44}
+            height={44}
+            className="object-contain"
             priority
           />
-          <div className="w-[106px] flex justify-center items-center gap-[10px]">
-            <div className="text-center text-black/25 text-base font-normal leading-6">
-              {nombre || "Usuario"} {apellido || ""}
-            </div>
-          </div>
+        </div>
+
+        {/* Nombre y Apellido */}
+        <div className="flex items-center">
+          <span className="text-[#0B376D] text-sm font-semibold block leading-none">
+            {nombre || "Agustín"} {apellido || "López"}
+          </span>
         </div>
       </div>
-    </>
+
+      <div></div>
+    </div>
   );
 };

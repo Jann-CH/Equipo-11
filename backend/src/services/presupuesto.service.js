@@ -161,6 +161,8 @@ export const filtroPresupuestoService = async (usuarioId, pagina = 1, limite = 1
 
 export const getDashboardDataService = async ( usuarioId, periodo ) => {
 
+    console.log("ID: ",usuarioId)
+
     // 1. Verificamos si el usuario existe
     const existeUsuario = await verifyUserByIdExistsRepository(usuarioId);
 
