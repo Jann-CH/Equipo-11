@@ -285,19 +285,19 @@ export const contarPresupuestosConFiltrosRepository = async (usuarioId, filtros)
 export const getDashboardDataRepository = async (usuarioId, periodo = 'semanal') => {
     // Definimos el intervalo y el formato de agrupación según el botón presionado
     let filtroFecha = "created_at >= NOW() - INTERVAL '7 days'";
-    let agrupacion = "TO_CHAR(created_at, 'Dy'), EXTRACT(ISODOW FROM created_at)";
-    let orden = "dia_num ASC";
+    let agrupacion = "TO_CHAR(created_at, 'Dy')";
+    let ordenNumero = "EXTRACT(ISODOW FROM MIN(created_at)) ASC"
 
     if (periodo === 'diario') {
         // Último día o desglose por hora del día actual
         filtroFecha = "created_at >= CURRENT_DATE";
         agrupacion = "TO_CHAR(created_at, 'HH24:00')";
-        orden = "dia_corto ASC";
+        ordenNumero = "MIN(created_at) ASC";
     } else if (periodo === 'mensual') {
         // Últimos 30 días o agrupado por semana/mes
         filtroFecha = "created_at >= NOW() - INTERVAL '30 days'";
         agrupacion = "TO_CHAR(created_at, 'DD/MM')";
-        orden = "dia_corto ASC";
+        ordenNumero = "MIN(created_at) ASC";
     }
     const query = `
         WITH estadisticas AS (
@@ -315,7 +315,6 @@ export const getDashboardDataRepository = async (usuarioId, periodo = 'semanal')
         actividad AS (
             SELECT 
                 ${agrupacion} AS dia_corto,
-                MIN(EXTRACT(EPOCH FROM created_at)) AS dia_num,
                 COUNT(*) FILTER (WHERE estado = 'Guardado') AS guardados,
                 COUNT(*) FILTER (WHERE estado = 'Aceptado') AS aceptados,
                 COUNT(*) FILTER (WHERE estado = 'Rechazado') AS rechazados
@@ -324,7 +323,7 @@ export const getDashboardDataRepository = async (usuarioId, periodo = 'semanal')
               AND deleted_at IS NULL
               AND ${filtroFecha}
             GROUP BY dia_corto
-            ORDER BY ${orden}
+            ORDER BY ${ordenNumero}
         )
 
         SELECT
