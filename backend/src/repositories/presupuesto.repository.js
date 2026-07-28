@@ -306,10 +306,14 @@ export const getDashboardDataRepository = async (usuarioId, periodo = 'semanal')
                 COUNT(*) FILTER(WHERE estado = 'Guardado') AS guardados,
                 COUNT(*) FILTER(WHERE estado = 'Aceptado') AS aceptados,
                 COUNT(*) FILTER(WHERE estado = 'Rechazado') AS rechazados,
-                COUNT(*) AS total_presupuestos
+                COUNT(*) AS total_presupuestos,
+                u.nombre AS usuario_nombre,
+                u.apellido AS usuario_apellido
             FROM presupuestos
+            JOIN usuarios u ON p.usuario_id = u.id
             WHERE usuario_id = $1
             AND deleted_at IS NULL
+            GROUP BY u.nombre, u.apellido
         ),
 
         actividad AS (
@@ -334,13 +338,17 @@ export const getDashboardDataRepository = async (usuarioId, periodo = 'semanal')
     const { rows } = await pool.query(query, [usuarioId]);
     const resultado = rows[0];
 
+    const statsData = resultado.stats || {};
+
     return {
         estadisticas: {
-            sumaTotal: parseFloat(resultado.stats.suma_total || 0),
-            guardados: parseInt(resultado.stats.guardados || 0, 10),
-            aceptados: parseInt(resultado.stats.aceptados || 0, 10),
-            rechazados: parseInt(resultado.stats.rechazados || 0, 10),
-            totalPresupuestos: parseInt(resultado.stats.total_presupuestos || 0, 10)
+            sumaTotal:         parseFloat(statsData.suma_total       || 0),
+            guardados:         parseInt(statsData.guardados          || 0, 10),
+            aceptados:         parseInt(statsData.aceptados          || 0, 10),
+            rechazados:        parseInt(statsData.rechazados         || 0, 10),
+            totalPresupuestos: parseInt(statsData.total_presupuestos || 0, 10),
+            usuarioNombre:     statsData.usuario_nombre   || "", 
+            usuarioApellido:   statsData.usuario_apellido || "", 
         },
         actividadSemanal: resultado.semanal.map(row => ({
             dia: row.dia_corto,

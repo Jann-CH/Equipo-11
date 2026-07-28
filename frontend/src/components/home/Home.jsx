@@ -41,7 +41,10 @@ const {
   return (
     <div className="relative w-[375px] h-[935px] bg-white overflow-hidden mx-auto shadow-2xl font-['Lato']">
       {/* Perfil / Usuario */}
-      <DateAndImg />
+      <DateAndImg
+       nombre={estadisticas.usuarioNombre} 
+       apellido={estadisticas.usuarioApellido}
+      />
 
       {/* Tarjeta Principal: Total Activo */}
 
