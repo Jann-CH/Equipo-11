@@ -312,7 +312,8 @@ export const getDashboardDataRepository = async (usuarioId, periodo = 'semanal')
             FROM presupuestos p
             JOIN usuarios u ON p.usuario_id = u.id
             WHERE usuario_id = $1
-            AND deleted_at IS NULL
+            AND p.deleted_at IS NULL
+            AND u.deleted_at IS NULL
             GROUP BY u.nombre, u.apellido
         ),
 
