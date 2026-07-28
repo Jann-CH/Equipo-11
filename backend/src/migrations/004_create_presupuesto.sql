@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS presupuestos(
     cliente_id UUID NOT NULL, 
 
     -- Número del presupuesto (ej: P-001)
-    numero VARCHAR(20) UNIQUE NOT NULL,
+    numero VARCHAR(20) NOT NULL,
 
     -- Fecha de creación del presupuesto
     fecha DATE NOT NULL DEFAULT CURRENT_DATE,
