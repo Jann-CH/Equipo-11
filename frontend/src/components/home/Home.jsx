@@ -20,7 +20,7 @@ export default function Home() {
 
   if (loading && !data) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center w-full max-w-xl mx-auto p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center w-full px-4">
         <span className="text-sm text-black/55 font-medium">Cargando dashboard...</span>
       </div>
     );
@@ -28,7 +28,7 @@ export default function Home() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center w-full max-w-xl mx-auto p-4 text-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center w-full px-4 text-center">
         <span className="text-sm text-red-500 font-medium">{error}</span>
       </div>
     );
@@ -38,7 +38,9 @@ export default function Home() {
   const actividadSemanal = data?.actividadSemanal || [];
 
   return (
-    <div className="min-h-screen bg-gray-50 w-full max-w-xl mx-auto px-5 py-6 flex flex-col justify-between pb-28">
+    <>
+    {/* Quitamos max-w-xl/md y usamos w-full con un padding lateral fluido (px-4 o px-5) */}
+    <div className="min-h-screen bg-gray-50 w-full px-4 sm:px-6 py-6 flex flex-col justify-between pb-28">
       <div className="flex flex-col gap-5 w-full flex-1">
         
         <DateAndImg 
@@ -70,5 +72,6 @@ export default function Home() {
 
       </div>
     </div>
+    </>
   );
 }
