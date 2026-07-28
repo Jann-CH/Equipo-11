@@ -3,12 +3,13 @@ import React from "react";
 import { DateAndImg } from "./components/DateAndImg";
 import { TotalActivo } from "./components/TotalActivo";
 import { ActividadSemanal } from "./components/ActividadSemanal";
-import { ClientesRecientes } from "../ui/ClientesRecientes";
+import { ClientesRecientes } from "@/components/ui/ClientesRecientes";
 import { useDashboard } from "./hooks/useDashboard";
 import { useFiltroPresupuestos } from "./hooks/usePresupuestosLista";
 
 export default function Home() {
   const { data, loading, error, periodo, cambiarPeriodo } = useDashboard();
+
   const { 
     presupuestos: listaData, 
     paginaActual: pagina, 
@@ -38,17 +39,13 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 w-full max-w-md mx-auto px-4 py-6 flex flex-col justify-between pb-28">
-      
-      {/* Contenedor general en columna que distribuye el espacio disponible */}
       <div className="flex flex-col gap-4 w-full flex-1">
         
-        {/* Perfil / Usuario */}
         <DateAndImg 
           nombre={estadisticas.usuarioNombre} 
           apellido={estadisticas.usuarioApellido}
         />
 
-        {/* Tarjeta Principal: Total Activo */}
         <TotalActivo 
           sumaTotal={estadisticas.sumaTotal}
           totalPresupuestos={estadisticas.totalPresupuestos}
@@ -56,14 +53,13 @@ export default function Home() {
           rechazados={estadisticas.rechazados}
         />
 
-        {/* Actividad Semanal (Gráfico) */}
         <ActividadSemanal 
           actividadSemanal={actividadSemanal}
           periodo={periodo}
           cambiarPeriodo={cambiarPeriodo}
         />
 
-        {/* Sección Recientes & Lista */}
+        {/* El botón "Ver más" de este componente redirigirá limpiamente a /home/historial */}
         <ClientesRecientes 
           presupuestos={listaData || []} 
           paginaActual={pagina}

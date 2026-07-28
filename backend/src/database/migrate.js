@@ -77,7 +77,7 @@ export const runMigration = async () => {
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           usuario_id UUID NOT NULL,
           cliente_id UUID NOT NULL,
-          numero VARCHAR(20) UNIQUE NOT NULL,
+          numero VARCHAR(20) NOT NULL,
           fecha DATE NOT NULL DEFAULT CURRENT_DATE,
           subtotal NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
           total NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
