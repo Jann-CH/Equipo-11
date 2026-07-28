@@ -36,6 +36,7 @@ export default function HistorialPage() {
         esVistaCompleta={true} 
       />
       
+      
     </div>
   );
 }
