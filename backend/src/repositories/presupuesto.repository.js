@@ -368,7 +368,7 @@ export const getBudgetRepository = async (usuarioId, limit = null, offset = 0) =
         LEFT JOIN detalle_presupuesto dp ON p.id = dp.presupuesto_id
         WHERE p.usuario_id=$1
         AND p.deleted_at IS NULL
-        GROUP BY p.id,c.id
+        GROUP BY p.id, c.id, c.nombre, c.apellido
         ORDER BY p.created_at DESC
     `;
 
