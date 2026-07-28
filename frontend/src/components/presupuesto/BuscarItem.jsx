@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { Search } from "lucide-react";
 
 import { getItemsService } from "@/services/items.service";
 
@@ -27,37 +27,55 @@ export const BuscarItem = ({ onAgregarItem }) => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
         setMostrarLista(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
 
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const itemsFiltrados = useMemo(() => {
     if (!busqueda) return items;
 
-    return items.filter(item => item.nombre.toLowerCase().includes(busqueda.toLowerCase()));
+    return items.filter((item) =>
+      item.nombre.toLowerCase().includes(busqueda.toLowerCase())
+    );
   }, [items, busqueda]);
 
   const agregarItem = (item) => {
     onAgregarItem({ ...item, cantidad: 1 });
+
     setBusqueda("");
     setMostrarLista(false);
   };
 
   return (
-    <div className="relative" ref={containerRef}>
-      <label className="block mb-2 text-sm font-medium text-[#123B5D]">
-        Nombre del servicio
-        <span className="text-red-500 ml-1">*</span>
-      </label>
+    <div ref={containerRef} className="relative">
+      {/* Label + número presupuesto */}
+      <div className="flex justify-between items-center mb-2">
+        <label className="text-xs font-medium text-[#123B5D]">
+          Nombre del servicio
+          <span className="text-red-500 ml-1">*</span>
+        </label>
 
+        <span className="text-xs font-semibold text-[#123B5D]">
+          #P-0040
+        </span>
+      </div>
+
+      {/* Input */}
       <div className="relative">
-        <MagnifyingGlassIcon className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+        <Search
+          size={16}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+        />
 
         <input
           type="text"
@@ -68,28 +86,63 @@ export const BuscarItem = ({ onAgregarItem }) => {
             setBusqueda(e.target.value);
             setMostrarLista(true);
           }}
-          className="w-full rounded-xl border border-gray-300 py-3 pl-10 pr-3 outline-none focus:border-[#528A72]"
+          className="
+            w-full
+            h-10
+            rounded-lg
+            border
+            border-gray-300
+            pl-9
+            pr-3
+            text-xs
+            text-[#123B5D]
+            outline-none
+            focus:border-[#528A72]
+            focus:ring-2
+            focus:ring-[#528A72]/20
+          "
         />
       </div>
 
+      {/* Lista */}
       {mostrarLista && (
-        <div className="absolute z-30 mt-2 w-full bg-white rounded-xl border border-gray-200 shadow-lg max-h-72 overflow-y-auto">
+        <div
+          className="
+            absolute
+            z-30
+            mt-2
+            w-full
+            rounded-xl
+            border
+            border-gray-200
+            bg-white
+            shadow-lg
+            overflow-hidden
+            max-h-72
+            overflow-y-auto
+          "
+        >
           {itemsFiltrados.length > 0 ? (
-            itemsFiltrados.map(item => (
+            itemsFiltrados.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => agregarItem(item)}
-                className="w-full px-4 py-3 flex justify-between items-center hover:bg-[#F4F8F6] transition"
+                className="w-full px-4 py-3 text-left hover:bg-[#F4F8F6] transition"
               >
-                <div className="text-left">
-                  <p className="font-medium text-[#123B5D]">{item.nombre}</p>
-                  <p className="text-xs text-gray-500">${Number(item.precio).toLocaleString()}</p>
-                </div>
+                <p className="text-sm font-medium text-[#123B5D]">
+                  {item.nombre}
+                </p>
+
+                <p className="text-xs text-gray-500 mt-1">
+                  ${Number(item.precio).toLocaleString()}
+                </p>
               </button>
             ))
           ) : (
-            <p className="px-4 py-3 text-sm text-gray-500">No se encontraron servicios.</p>
+            <p className="px-4 py-4 text-sm text-gray-500">
+              No se encontraron servicios.
+            </p>
           )}
         </div>
       )}

@@ -1,52 +1,126 @@
 "use client";
 
-import { TrashIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
+import { Trash2 } from "lucide-react";
 
 export const ItemCard = ({ item, onDelete, onCantidadChange }) => {
-  const subtotal = item.precio * item.cantidad;
+  const subtotal = Number(item.precio) * Number(item.cantidad);
+
+  const [editandoCantidad, setEditandoCantidad] = useState(false);
 
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-2xl border border-[#E6ECE9] p-5 shadow-sm">
       {/* Nombre */}
-      <div className="mb-4">
-        <h3 className="font-semibold text-[#123B5D]">{item.nombre}</h3>
-      </div>
+      <h3 className="font-semibold text-lg text-[#123B5D] mb-5">
+        {item.nombre}
+      </h3>
 
-      <div className="grid grid-cols-3 gap-3 text-center">
+      {/* Datos */}
+      <div className="flex items-stretch">
         {/* Cantidad */}
-        <div>
-          <p className="text-xs text-gray-500 mb-1">Cantidad</p>
-          <input
-            type="number"
-            min="1"
-            value={item.cantidad}
-            onChange={(e) => onCantidadChange(item.id, Number(e.target.value))}
-            className="w-full text-center rounded-lg border border-gray-300 py-2"
-          />
+        <div className="flex-1 text-center">
+          <p className="text-xs text-[#98A2B3] mb-1 leading-tight">
+            Cantidad
+          </p>
+
+          {editandoCantidad ? (
+            <input
+              autoFocus
+              type="number"
+              min="1"
+              value={item.cantidad}
+              onBlur={() => setEditandoCantidad(false)}
+              onChange={(e) =>
+                onCantidadChange(item.id, Number(e.target.value))
+              }
+              className="
+                w-12
+                bg-transparent
+                border-none
+                outline-none
+                text-center
+                font-semibold
+                text-[17px]
+                text-[#123B5D]
+                leading-tight
+              "
+            />
+          ) : (
+            <button
+              type="button"
+              onMouseEnter={() => setEditandoCantidad(true)}
+              className="font-semibold text-[17px] text-[#123B5D] leading-tight"
+            >
+              {item.cantidad}
+            </button>
+          )}
         </div>
 
-        {/* Precio */}
-        <div>
-          <p className="text-xs text-gray-500 mb-1">Precio unitario</p>
-          <p className="font-semibold text-[#123B5D] mt-2">${Number(item.precio).toLocaleString()}</p>
+        {/* Separador vertical */}
+        <div className="w-px bg-[#D0D9D5] mx-4" />
+
+        {/* Precio unitario */}
+        <div className="flex-[1.4] text-center">
+          <p className="text-xs text-[#98A2B3] mb-1 leading-tight">
+            Precio unitario
+          </p>
+
+          <p className="font-semibold text-[17px] text-[#123B5D] whitespace-nowrap leading-tight">
+            ${Number(item.precio).toLocaleString("es-AR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </p>
         </div>
+
+        {/* Separador vertical */}
+        <div className="w-px bg-[#D0D9D5] mx-4" />
 
         {/* Subtotal */}
-        <div>
-          <p className="text-xs text-gray-500 mb-1">Subtotal</p>
-          <p className="font-semibold text-[#123B5D] mt-2">${Number(subtotal).toLocaleString()}</p>
+        <div className="flex-1 text-center">
+          <p className="text-xs text-[#98A2B3] mb-1 leading-tight">
+            Subtotal
+          </p>
+
+          <p className="font-semibold text-[17px] text-[#123B5D] whitespace-nowrap leading-tight">
+            ${subtotal.toLocaleString("es-AR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </p>
         </div>
       </div>
 
+      {/* Línea horizontal */}
+      <div className="mt-1 mb-5 border-t border-[#D0D9D5]" />
+
       {/* Eliminar */}
-      <button
-        type="button"
-        onClick={() => onDelete(item.id)}
-        className="mt-4 w-full flex justify-center items-center gap-2 py-2 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition"
-      >
-        <TrashIcon className="w-5 h-5" />
-        Eliminar
-      </button>
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={() => onDelete(item.id)}
+          className="
+            w-[42%]
+            -translate-x-1
+            h-9
+            rounded-2xl
+            border
+            border-red-300
+            text-red-500
+            relative
+            flex
+            items-center
+            justify-center
+            text-sm
+            font-medium
+            transition
+            hover:bg-red-50
+          "
+        >
+          <Trash2 size={20} strokeWidth={1.5} className="absolute left-4" />
+          <span>Eliminar</span>
+        </button>
+      </div>
     </div>
   );
 };

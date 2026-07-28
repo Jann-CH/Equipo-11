@@ -1,11 +1,8 @@
 "use client";
 
-import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { ChevronDown, FileText } from "lucide-react";
 
-export const ObservacionesCard = ({
-  observaciones,
-  onOpen,
-}) => {
+export const ObservacionesCard = ({ observaciones, onOpen }) => {
   return (
     <button
       type="button"
@@ -14,33 +11,36 @@ export const ObservacionesCard = ({
         w-full
         bg-white
         border
-        rounded-xl
-        p-4
+        border-[#E6ECE9]
+        rounded-2xl
+        pl-6
+        pr-4
+        py-4
         shadow-sm
         flex
-        justify-between
         items-center
+        justify-between
+        transition
+        hover:bg-[#F8FAF9]
       "
     >
-      <div className="text-left">
+      <div className="flex flex-1 items-center gap-5">
+        <div className="w-10 h-10 rounded-xl bg-[#F2F5F7] flex items-center justify-center shrink-0">
+          <FileText size={20} strokeWidth={2} className="text-[#123B5D]" />
+        </div>
 
-        <p className="font-semibold text-[#123B5D]">
-          Observaciones
-        </p>
+        <div className="flex-1 text-left">
+          <p className="text-base font-semibold text-[#123B5D]">
+            Observaciones
+          </p>
 
-        <p className="text-sm text-gray-500 mt-1 truncate">
-          {
-            observaciones?.trim()
-              ? observaciones
-              : "Sin observaciones."
-          }
-        </p>
-
+          <p className="mt-1 text-sm text-[#667085] truncate">
+            {observaciones?.trim() ? observaciones : "Sin observaciones."}
+          </p>
+        </div>
       </div>
 
-      <ChevronDownIcon
-        className="w-5 h-5 text-[#123B5D]"
-      />
+      <ChevronDown size={20} strokeWidth={2} className="text-[#123B5D] shrink-0" />
     </button>
   );
 };

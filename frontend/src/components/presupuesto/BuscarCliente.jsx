@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { Search, UserRoundPlus } from "lucide-react";
 
 import { getClientesService } from "@/services/clientes.service";
 
-export const BuscarCliente = ({ clienteSeleccionado, onSelect }) => {
+export const BuscarCliente = ({
+  clienteSeleccionado,
+  onSelect,
+  onNuevoCliente,
+}) => {
   const [clientes, setClientes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [mostrarLista, setMostrarLista] = useState(false);
@@ -27,7 +31,9 @@ export const BuscarCliente = ({ clienteSeleccionado, onSelect }) => {
 
   useEffect(() => {
     if (clienteSeleccionado) {
-      setBusqueda(`${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}`);
+      setBusqueda(
+        `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}`
+      );
     } else {
       setBusqueda("");
     }
@@ -42,19 +48,21 @@ export const BuscarCliente = ({ clienteSeleccionado, onSelect }) => {
 
     document.addEventListener("mousedown", clickFuera);
 
-    return () => {
+    return () =>
       document.removeEventListener("mousedown", clickFuera);
-    };
   }, []);
 
   const filtrados = useMemo(() => {
     if (!busqueda) return clientes;
 
-    return clientes.filter(cliente => {
+    return clientes.filter((cliente) => {
       const nombre = `${cliente.nombre} ${cliente.apellido}`.toLowerCase();
       const email = cliente.email?.toLowerCase() || "";
 
-      return nombre.includes(busqueda.toLowerCase()) || email.includes(busqueda.toLowerCase());
+      return (
+        nombre.includes(busqueda.toLowerCase()) ||
+        email.includes(busqueda.toLowerCase())
+      );
     });
   }, [clientes, busqueda]);
 
@@ -64,45 +72,113 @@ export const BuscarCliente = ({ clienteSeleccionado, onSelect }) => {
     setMostrarLista(false);
   };
 
+  const nuevoCliente = () => {
+    setMostrarLista(false);
+
+    if (onNuevoCliente) {
+      onNuevoCliente();
+    }
+  };
+
   return (
     <div ref={ref} className="relative">
-      <label className="text-sm font-medium text-[#123B5D]">
+      <label className="block mb-2 text-xs font-medium text-[#123B5D]">
         Cliente
         <span className="text-red-500 ml-1">*</span>
       </label>
 
-      <div className="relative mt-1">
-        <MagnifyingGlassIcon className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+      <div className="flex items-center justify-between w-full">
+        <div className="relative w-[320px]">
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
 
-        <input
-          value={busqueda}
-          onFocus={() => setMostrarLista(true)}
-          onChange={(e) => {
-            setBusqueda(e.target.value);
-            setMostrarLista(true);
-          }}
-          placeholder="Buscar o crear cliente..."
-          className="w-full rounded-xl border border-gray-300 py-3 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-[#528A72]"
-        />
+          <input
+            value={busqueda}
+            onFocus={() => setMostrarLista(true)}
+            onChange={(e) => {
+              setBusqueda(e.target.value);
+              setMostrarLista(true);
+            }}
+            placeholder="Buscar o crear cliente"
+            className="
+              w-full
+              h-10
+              rounded-lg
+              border
+              border-gray-300
+              pl-9
+              pr-3
+              text-xs
+              text-[#123B5D]
+              outline-none
+              focus:border-[#528A72]
+              focus:ring-2
+              focus:ring-[#528A72]/20
+            "
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={nuevoCliente}
+          className="
+            w-10
+            h-10
+            rounded-lg
+            bg-[#123B5D]
+            flex
+            items-center
+            justify-center
+            text-white
+            shrink-0
+            hover:bg-[#0d2b44]
+            transition
+          "
+        >
+          <UserRoundPlus size={19} strokeWidth={2} />
+        </button>
       </div>
 
       {mostrarLista && (
-        <div className="absolute z-20 w-full mt-1 bg-white border rounded-xl shadow-lg max-h-60 overflow-y-auto">
-          {filtrados.length > 0 ?
-            filtrados.map(cliente => (
+        <div
+          className="
+            absolute
+            z-30
+            mt-2
+            w-[320px]
+            rounded-xl
+            border
+            border-gray-200
+            bg-white
+            shadow-lg
+            max-h-60
+            overflow-y-auto
+          "
+        >
+          {filtrados.length > 0 ? (
+            filtrados.map((cliente) => (
               <button
                 key={cliente.id}
                 type="button"
                 onClick={() => seleccionar(cliente)}
-                className="w-full text-left px-4 py-3 hover:bg-gray-50"
+                className="w-full px-3 py-3 text-left hover:bg-[#F4F8F6]"
               >
-                <p className="font-medium text-[#123B5D]">{cliente.nombre} {cliente.apellido}</p>
-                <p className="text-xs text-gray-500">{cliente.email}</p>
+                <p className="text-sm font-medium text-[#123B5D]">
+                  {cliente.nombre} {cliente.apellido}
+                </p>
+
+                <p className="text-xs text-gray-500">
+                  {cliente.email}
+                </p>
               </button>
             ))
-            :
-            <p className="p-3 text-sm text-gray-500">No hay clientes</p>
-          }
+          ) : (
+            <p className="p-3 text-xs text-gray-500">
+              No hay clientes
+            </p>
+          )}
         </div>
       )}
     </div>
