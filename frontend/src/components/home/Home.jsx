@@ -5,9 +5,16 @@ import { TotalActivo } from "./components/TotalActivo";
 import { ActividadSemanal } from "./components/ActividadSemanal";
 import { ClientesRecientes } from "../ui/ClientesRecientes";
 import { useDashboard } from "./hooks/useDashboard";
+import { useFiltroPresupuestos } from "./hooks/usePresupuestosLista"
 
 export default function Home() {
   const { data, loading, error, periodo, cambiarPeriodo } = useDashboard();
+  const { 
+    presupuestos: listaData, 
+    paginaActual: pagina,
+    cambiarPagina, 
+    loading: listaLoading 
+  } = useFiltroPresupuestos(5);
 
   // Si está cargando por primera vez o hay un error, puedes mostrar indicadores visuales
   if (loading && !data) {
