@@ -15,6 +15,7 @@ export const PROTECTED_ROUTES = [
   "/productos",
   "/presupuestos",
   "/perfil",
+  "/acerca",
 ];
 
 export const AUTH_ROUTES = [
