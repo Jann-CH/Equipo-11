@@ -6,11 +6,20 @@ import {
     getDashboardDataService,
     getBudgetService,
 } from "../services/presupuesto.service.js";
+
+import {
+    findPresupuestoConDetallesRepository,
+    addPdfRepository,
+} from "../repositories/presupuesto.repository.js";
+
+import { generarPresupuestoPDF } from "../services/pdf.service.js";
+import { uploadPresupuestoService } from "../services/files.service.js";
+
 import { AppError } from "../utils/AppError.util.js";
 
 /**
  * POST /api/presupuestos
- * Crea un presupuesto completo con sus ítems de detalle.
+ * Crea presupuesto + genera PDF
  */
 export const createPresupuesto = async (req, res, next) => {
     try {
@@ -36,14 +45,47 @@ export const createPresupuesto = async (req, res, next) => {
             detalles,
         };
 
-        const resultado = await createPresupuestoCompletoService(
-            datosPresupuesto
+        // Crear presupuesto en BD
+        const resultado = await createPresupuestoCompletoService(datosPresupuesto);
+
+        // Traer datos completos para PDF
+        const presupuestoCompleto = await findPresupuestoConDetallesRepository(
+            resultado.id,
+            usuarioId
         );
 
-        res.status(201).json({ 
-            success: true, 
-            message: "Se creo un nuevo presupuesto",
-            presupuesto: resultado 
+        // Generar PDF
+        const pdfBuffer = await generarPresupuestoPDF(presupuestoCompleto);
+
+        // ===============================
+        // SUBIR A CLOUDINARY
+        // ===============================
+        const nombreCliente = `${presupuestoCompleto.cliente_nombre}_${presupuestoCompleto.cliente_apellido}`;
+        const fechaCreacion = new Date().toISOString().split("T")[0];
+
+        const upload = await uploadPresupuestoService(
+            pdfBuffer,
+            nombreCliente,
+            fechaCreacion
+        );
+
+        // Guardar URL PDF
+        await addPdfRepository({
+            usuarioId,
+            presupuestoId: resultado.id,
+            pdf_url: upload.url,
+            pdf_public_id: upload.public_id,
+            estado: resultado.estado,
+        });
+
+        res.status(201).json({
+            success: true,
+            message: "Se creó un nuevo presupuesto",
+            presupuesto: {
+                ...resultado,
+                pdf_url: upload.url,
+                pdf_public_id: upload.public_id,
+            },
         });
     } catch (error) {
         next(error);
@@ -52,79 +94,60 @@ export const createPresupuesto = async (req, res, next) => {
 
 /**
  * GET /api/presupuestos/:id
- * Obtiene un presupuesto con sus detalles.
  */
 export const getPresupuestoById = async (req, res, next) => {
     try {
-        const usuarioId = req.auth.id; 
+        const usuarioId = req.auth.id;
         const { id } = req.params;
-        
+
         const presupuesto = await getPresupuestoByIdService(id, usuarioId);
 
         if (!presupuesto) {
             return next(new AppError("Presupuesto no encontrado", 404));
         }
 
-        res.status(200).json({ 
-            success: true, 
-            presupuesto 
+        res.status(200).json({
+            success: true,
+            presupuesto,
         });
-
     } catch (error) {
         next(error);
     }
 };
 
 /**
- * PUT /api/presupuesto/
- * guardamos el pdf creado 
-*/
+ * Guardar PDF manualmente
+ */
 export const addPdfController = async (req, res, next) => {
-    try{
+    try {
         const { presupuestoId } = req.params;
-        const file = req.file; 
+        const file = req.file;
         const usuarioId = req.auth.id;
-        const pdf = await addPdfService(
-            { 
-                usuarioId, 
-                presupuestoId 
-            },
-            file
-        );
+
+        const pdf = await addPdfService({ usuarioId, presupuestoId }, file);
+
         res.status(200).json({
             success: true,
-            message: "Se guardo el PDF",
-            data:pdf
-        })
-    }catch(error){
+            message: "Se guardó el PDF",
+            data: pdf,
+        });
+    } catch (error) {
         next(error);
     }
-}
-
-/**
- * PUT /api/presupuesto/
- * filtrado
- */
+};
 
 export const filtroPresuestoController = async (req, res, next) => {
-
-    try{
-
-        const {
-            pagina =  1,
-            limite = 10,
-            filtro = '{}'
-        } = req.query;
-
+    try {
+        const { pagina = 1, limite = 10, filtro = "{}" } = req.query;
         const usuarioId = req.auth.id;
 
         let filtrosObj;
         try {
-            filtrosObj = typeof filtro === 'string' ? JSON.parse(filtro) : filtro;
-        } catch (e) {
+            filtrosObj = typeof filtro === "string" ? JSON.parse(filtro) : filtro;
+        } catch {
             return next(new AppError("Formato de filtro inválido", 400));
         }
-        
+
         const data = await filtroPresupuestoService(
             usuarioId,
             Number(pagina),
@@ -134,42 +157,41 @@ export const filtroPresuestoController = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            ...data
-        })
-
-    }catch (error){
+            ...data,
+        });
+    } catch (error) {
         next(error);
     }
-
-}
+};
 
 export const getDashboardController = async (req, res, next) => {
-    try{
+    try {
         const usuarioId = req.auth.id;
-        const { periodo = 'semanal' } = req.query;
+        const { periodo = "semanal" } = req.query;
+
         const data = await getDashboardDataService(usuarioId, periodo);
+
         res.status(200).json({
             success: true,
             data,
-        })
-    }catch(error){
+        });
+    } catch (error) {
         next(error);
     }
-}
+};
 
-export const getBudgetController = async (req, res,next) => {
-    try{
-        const {
-            page =  1,
-            limit = 5,
-        } = req.query;
+export const getBudgetController = async (req, res, next) => {
+    try {
+        const { page = 1, limit = 5 } = req.query;
         const usuarioId = req.auth.id;
+
         const data = await getBudgetService(usuarioId, page, limit);
+
         res.status(200).json({
-            success:true,
+            success: true,
             data,
-        })
-    }catch(error){
+        });
+    } catch (error) {
         next(error);
     }
- }
+};

@@ -45,36 +45,46 @@ export const uploadLogoService = async (fileBuffer, nombreDeCarpeta) => {
  */
 
 export const uploadPresupuestoService = async (
-    filePath,
+    fileBuffer,
     nombreDeCarpeta,
     creacionFecha,
 ) => {
-    //convierto el nombre de la carpeta " Panaderi Pepito " en Panaderia-Pepito.
+
     const nombreFolder = await generateFolderName(nombreDeCarpeta);
-    // Sube el PDF a Cloudinary
-    const result = await cloudinary.uploader.upload(
-        filePath,
-        {
 
-            // Ruta donde se almacenarán
-            // los presupuestos de la empresa
-            // empresas/panaderia-san-martin/presupuestos
-            folder: `empresas/${nombreFolder}/presupuestos/${creacionFecha}`,
-            // Los PDFs se almacenan como RAW
-            resource_type: "raw",
-            // Mantiene el nombre del archivo original
-            use_filename: true,
-            // Evita conflictos de nombres
-            unique_filename: true
+    const stream = Readable.from(fileBuffer);
 
-        }
-    );
+    return new Promise((resolve, reject) => {
 
-    return {
-        public_id: result.public_id,
-        url: result.secure_url
-    };
-}
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                folder: `empresas/${nombreFolder}/presupuestos/${creacionFecha}`,
+                resource_type: "raw",
+                public_id: `presupuesto-${creacionFecha}`,
+                overwrite: true,
+            },
+            (error, result) => {
+
+                if (error) {
+                    console.log("ERROR CLOUDINARY PDF:", error);
+                    return reject(error);
+                }
+console.log(result);
+                resolve({
+                    public_id: result.public_id,
+                    url: result.secure_url,
+                });
+
+            }
+        );
+
+        stream.pipe(uploadStream);
+
+    });
+};
+
+
+
 
 /**
  * ==========================================================

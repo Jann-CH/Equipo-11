@@ -8,6 +8,10 @@ export const ItemCard = ({ item, onDelete, onCantidadChange }) => {
 
   const [editandoCantidad, setEditandoCantidad] = useState(false);
 
+  const finalizarEdicion = () => {
+    setEditandoCantidad(false);
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-[#E6ECE9] p-5 shadow-sm">
       {/* Nombre */}
@@ -29,7 +33,12 @@ export const ItemCard = ({ item, onDelete, onCantidadChange }) => {
               type="number"
               min="1"
               value={item.cantidad}
-              onBlur={() => setEditandoCantidad(false)}
+              onBlur={finalizarEdicion}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.currentTarget.blur();
+                }
+              }}
               onChange={(e) =>
                 onCantidadChange(item.id, Number(e.target.value))
               }
@@ -48,8 +57,14 @@ export const ItemCard = ({ item, onDelete, onCantidadChange }) => {
           ) : (
             <button
               type="button"
-              onMouseEnter={() => setEditandoCantidad(true)}
-              className="font-semibold text-[17px] text-[#123B5D] leading-tight"
+              onClick={() => setEditandoCantidad(true)}
+              className="
+                font-semibold
+                text-[17px]
+                text-[#123B5D]
+                leading-tight
+                cursor-pointer
+              "
             >
               {item.cantidad}
             </button>
@@ -117,7 +132,11 @@ export const ItemCard = ({ item, onDelete, onCantidadChange }) => {
             hover:bg-red-50
           "
         >
-          <Trash2 size={20} strokeWidth={1.5} className="absolute left-4" />
+          <Trash2
+            size={20}
+            strokeWidth={1.5}
+            className="absolute left-4"
+          />
           <span>Eliminar</span>
         </button>
       </div>
