@@ -85,6 +85,8 @@ export const createPresupuesto = async (req, res, next) => {
                 ...resultado,
                 pdf_url: upload.url,
                 pdf_public_id: upload.public_id,
+                cliente_telefono: presupuestoCompleto.cliente_telefono,
+                
             },
         });
     } catch (error) {
@@ -191,6 +193,43 @@ export const getBudgetController = async (req, res, next) => {
             success: true,
             data,
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const downloadPdfController = async (req, res, next) => {
+    try {
+        const usuarioId = req.auth.id;
+        const { id } = req.params;
+
+        const presupuestoCompleto =
+            await findPresupuestoConDetallesRepository(
+                id,
+                usuarioId
+            );
+
+        if (!presupuestoCompleto) {
+            return next(
+                new AppError("Presupuesto no encontrado", 404)
+            );
+        }
+
+        const pdfBuffer =
+            await generarPresupuestoPDF(presupuestoCompleto);
+
+        res.setHeader(
+            "Content-Type",
+            "application/pdf"
+        );
+
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="Presupuesto-${id}.pdf"`
+        );
+
+        res.send(pdfBuffer);
+
     } catch (error) {
         next(error);
     }

@@ -50,4 +50,13 @@ export const getPresupuestosFiltroService = async (params = {}) => {
 };
 
 
+export const downloadPresupuestoService = async (presupuestoId) => {
+  const response = await api.get(
+    `/presupuestos/${presupuestoId}/pdf`,
+    {
+      responseType: "blob",
+    }
+  );
 
+  return response.data;
+};

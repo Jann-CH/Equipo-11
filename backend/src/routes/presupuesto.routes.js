@@ -1,12 +1,13 @@
 import { Router } from "express";
 
-import { 
-    createPresupuesto, 
+import {
+    createPresupuesto,
     getPresupuestoById,
     addPdfController,
     filtroPresuestoController,
     getDashboardController,
     getBudgetController,
+    downloadPdfController,
 } from "../controllers/presupuesto.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validateUUID } from "../middlewares/validateUUID.middleware.js";
@@ -38,10 +39,13 @@ router.get("/", filtroPresuestoController);
 // Crear un presupuesto
 router.post("/", createPresupuesto);
 
-// Ruta para actualizar PDF
+// Actualizar PDF
 router.put("/:presupuestoId/pdf", upload.single("pdf"), addPdfController);
 
-// Ruta por ID (DEBE IR AL FINAL para que no intercepte a /dashboard o /lista)
+// Descargar PDF
+router.get("/:id/pdf", validateUUID, downloadPdfController);
+
+// Ruta por ID
 router.get("/:id", validateUUID, getPresupuestoById);
 
 export default router;

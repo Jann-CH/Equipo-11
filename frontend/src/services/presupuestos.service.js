@@ -13,3 +13,14 @@ export const createPresupuestoService = async (presupuestoData) => {
   return data;
 
 };
+
+export const downloadPresupuestoService = async (presupuestoId) => {
+  const response = await api.get(
+    `/presupuestos/${presupuestoId}/pdf`,
+    {
+      responseType: "blob",
+    }
+  );
+
+  return response.data;
+};

@@ -1,6 +1,7 @@
 import { Readable } from 'stream';
 import cloudinary from "../config/cloudinary.config.js";
 import { generateFolderName } from "../utils/generateFolderName.util.js";
+import axios from "axios";
 /**
  * COMO EXPORTALO PARA USARLO EN LOS MODULOS SERVICE QUE LLEVA LA LOGICA.
  * Importación con llaves {}
@@ -101,4 +102,12 @@ export const deleteFileService = async (publicId, resourceType = "image") => {
         console.error("Error al eliminar archivo en Cloudinary:", error);
         throw error;
     }
+};
+
+export const getFileStreamService = async (url) => {
+    const response = await axios.get(url, {
+        responseType: "stream",
+    });
+
+    return response.data;
 };
