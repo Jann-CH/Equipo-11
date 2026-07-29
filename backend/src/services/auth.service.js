@@ -84,7 +84,7 @@ export const loginService = async ({
     // Si no encuentra ningún usuario con ese email, lanza un error genérico por seguridad
     if (!user) {
         throw new AppError(
-            "El email no está registrado",
+            "Credenciales inválidas",
             404
         );
     }

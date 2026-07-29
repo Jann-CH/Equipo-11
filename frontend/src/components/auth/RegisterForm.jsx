@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,12 +9,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { registerSchema } from "@/lib/validations";
 import { Input } from "@/components/ui/Input";
+import { Terminos } from "@/components/auth/Terminos";
 import { registerService } from "@/services/authService";
 
 
 export const RegisterForm = () => {
 
   const router = useRouter();
+
+  const [mostrarTerminos, setMostrarTerminos] = useState(false);
 
 
   const {
@@ -74,7 +78,9 @@ export const RegisterForm = () => {
 
       setError("email", {
         type: "manual",
-        message: "true"
+        message:
+          error.response?.data?.message ||
+          "Error al registrar usuario"
       });
 
     }
@@ -122,75 +128,48 @@ export const RegisterForm = () => {
 
 
         <Input
-
           label="Nombre"
-
           placeholder="Agustín"
-
           error={!!errors.nombre}
-
           {...register("nombre")}
-
         />
 
 
 
         <Input
-
           label="Apellido"
-
           placeholder="López"
-
           error={!!errors.apellido}
-
           {...register("apellido")}
-
         />
 
 
 
         <Input
-
           label="Nombre de la Empresa"
-
           placeholder="Servicios Arg"
-
           error={!!errors.nombreEmprendimiento}
-
           {...register("nombreEmprendimiento")}
-
         />
 
 
 
         <Input
-
           label="Correo electrónico"
-
           type="email"
-
           placeholder="Alopez@serviciosarg.com.ar"
-
           error={!!errors.email}
-
           {...register("email")}
-
         />
 
 
 
         <Input
-
           label="Contraseña"
-
           type="password"
-
           placeholder="••••••"
-
           error={!!errors.password}
-
           {...register("password")}
-
         />
 
 
@@ -217,17 +196,11 @@ export const RegisterForm = () => {
 
 
         <Input
-
           label="Repetir contraseña"
-
           type="password"
-
           placeholder="••••••"
-
           error={!!errors.repetirPassword}
-
           {...register("repetirPassword")}
-
         />
 
 
@@ -235,17 +208,25 @@ export const RegisterForm = () => {
         <label className="flex items-center gap-2 text-[#0B376D] font-medium">
 
           <input
-
             type="checkbox"
-
             className="accent-[#0B376D]"
-
             {...register("terminos")}
-
           />
 
 
-          Aceptar los términos y condiciones
+          <span>
+
+            Acepto los{" "}
+
+            <button
+              type="button"
+              onClick={() => setMostrarTerminos(true)}
+              className="text-[#5B9B82] font-semibold hover:underline"
+            >
+              términos y condiciones
+            </button>
+
+          </span>
 
 
           {
@@ -266,11 +247,8 @@ export const RegisterForm = () => {
 
 
         <button
-
           type="submit"
-
           disabled={isSubmitting}
-
           className="
             w-full
             h-12
@@ -281,7 +259,6 @@ export const RegisterForm = () => {
             hover:bg-[#4E8C74]
             disabled:opacity-50
           "
-
         >
 
           {
@@ -300,11 +277,8 @@ export const RegisterForm = () => {
           ¿Ya tenés cuenta?{" "}
 
           <Link
-
             href="/login"
-
             className="font-semibold text-[#5B9B82] hover:underline"
-
           >
 
             Iniciá sesión
@@ -317,6 +291,13 @@ export const RegisterForm = () => {
 
 
       </form>
+
+
+
+      <Terminos
+  open={mostrarTerminos}
+  onClose={() => setMostrarTerminos(false)}
+/>
 
 
     </div>
