@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { AvatarEmpresa } from "@/components/ui/AvatarEmpresa";
 import { BackButton } from "../ui/BackButton";
+import   Loading      from "../ui/loading/Loading";
 import { getMeService, updateUserDataService } from "@/services/authService";
 
 export const MyDateForm = () => {
@@ -51,10 +52,14 @@ export const MyDateForm = () => {
     }
   };
 
-  if (loading) return <div>Cargando tus datos...</div>;
+  if (loading) return <Loading text="Cargando datos personales..." />;
 
   return (
     <>
+
+      {isSubmitting && (
+        <Loading variant="overlay" text="Guardando cambios..." />
+      )}
       {/* Encabezado */}
       <div className="flex items-center mb-6">
         <BackButton />

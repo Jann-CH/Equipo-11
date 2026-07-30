@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { updateUserLogoService } from "@/services/authService";
 import { useRouter } from "next/navigation";
+import Spinner from "../ui/loading/Spinner";
 
 export const EditarLogoForm = ({ user }) => {
   const [file, setFile] = useState(null);
@@ -125,7 +126,12 @@ export const EditarLogoForm = ({ user }) => {
         shadow-md hover:shadow-lg active:scale-[0.99]"
       >
         {loading ? (
-          <span className="flex items-center justify-center gap-2">
+          <>
+            <span className="flex items-center justify-center gap-3">
+              <Spinner size="sm" />
+              Procesando...
+            </span>
+            {/*<span className="flex items-center justify-center gap-2">
             <svg
               className="animate-spin h-5 w-5 text-white"
               xmlns="http://www.w3.org/2000/svg"
@@ -147,7 +153,8 @@ export const EditarLogoForm = ({ user }) => {
               ></path>
             </svg>
             Procesando...
-          </span>
+          </span>*/}
+          </>
         ) : (
           "Guardar cambios"
         )}

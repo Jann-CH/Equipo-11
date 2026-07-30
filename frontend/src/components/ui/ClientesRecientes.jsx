@@ -1,7 +1,7 @@
 "use client";
-
 import React from "react";
 import Link from "next/link";
+import Spinner from "@/components/ui/loading/Spinner"; // <--- Importamos tu componente Spinner reutilizable
 
 export const ClientesRecientes = ({
   presupuestos = [],
@@ -11,10 +11,26 @@ export const ClientesRecientes = ({
   loading = false,
   esVistaCompleta = false,
 }) => {
+
+  const calcularDiasRestantes = (fechaVencimientoStr) => {
+    if (!fechaVencimientoStr) return "";
+    
+    const hoy = new Date();
+    const vencimiento = new Date(fechaVencimientoStr);
+    
+    // Restamos la fecha de vencimiento menos el día de hoy
+    const diferenciaMilisegundos = vencimiento.getTime() - hoy.getTime();
+    const dias = Math.ceil(diferenciaMilisegundos / (1000 * 60 * 60 * 24));
+
+    if (dias < 0) return "Vencido";
+    if (dias === 0) return "Vence hoy";
+    return `Vence en ${dias} ${dias === 1 ? 'día' : 'días'}`;
+  };
+
   return (
     <div
-      className={`bg-white shadow-[0px_4px_16px_rgba(0,31,77,0.06)] rounded-[20px] p-5 flex flex-col justify-between w-full ${
-        esVistaCompleta ? "min-h-[500px]" : "min-h-[340px]"
+      className={`bg-white shadow-[0px_4px_16px_rgba(0,31,77,0.06)] rounded-[20px] p-5 flex flex-col justify-between  ${
+        esVistaCompleta ? "min-h-[500px]" : "min-h-[500px]"
       }`}
     >
       {/* Cabecera */}
@@ -34,14 +50,17 @@ export const ClientesRecientes = ({
       </div>
 
       {/* Lista de Presupuestos */}
-      <div className="flex flex-col gap-3 overflow-y-auto flex-1 my-1">
+      <div className="flex flex-col gap-2 overflow-y-auto flex-1 my-1">
         {loading ? (
-          <p className="text-center text-black/40 text-xs py-10">Cargando...</p>
+          <div className="flex flex-col items-center justify-center gap-2 py-12 flex-1">
+            <Spinner size="sm" />
+            <p className="text-xs text-gray-500 font-medium">Cargando presupuestos...</p>
+          </div>
         ) : presupuestos.length > 0 ? (
           presupuestos.map((item) => (
             <div
               key={item.id}
-              className="flex justify-between items-center bg-white border border-gray-100 shadow-sm p-4 rounded-[16px] transition-all hover:shadow-md"
+              className="flex justify-between items-center bg-white border border-gray-100 shadow-sm p-3 rounded-[16px] transition-all hover:shadow-md"
             >
               {/* Lado izquierdo: Avatar y Datos del cliente */}
               <div className="flex items-center gap-3.5">
@@ -58,11 +77,11 @@ export const ClientesRecientes = ({
                     {item?.cliente_apellido ?? ""}
                   </span>
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="text-black/50 font-medium">
+                    <span className="text-[#0B376D] font-medium">
                       {item.numero || `#P-${item.id.substring(0, 4)}`}
                     </span>
                     <span className="text-[#2E7D5B] font-medium">
-                      {item.fecha_vencimiento ? "Vence en 28 días" : ""}
+                      {`${calcularDiasRestantes(item.fecha_vencimiento)} `}
                     </span>
                   </div>
                 </div>
@@ -106,7 +125,7 @@ export const ClientesRecientes = ({
           <button
             onClick={() => cambiarPagina(Math.max(paginaActual - 1, 1))}
             disabled={paginaActual === 1 || loading}
-            className="px-3.5 py-1.5 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-40 font-medium transition"
+            className="px-3.5 py-1.5 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-40 font-medium transition cursor-pointer"
           >
             Anterior
           </button>
@@ -117,7 +136,7 @@ export const ClientesRecientes = ({
               presupuestos.length === 0 ||
               loading
             }
-            className="px-3.5 py-1.5 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-40 font-medium transition"
+            className="px-3.5 py-1.5 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-40 font-medium transition cursor-pointer"
           >
             Siguiente
           </button>

@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { ItemsForm } from "@/components/items/ItemsForm";
+import Loading from "@/components/ui/loading/Loading";
 import { getItemsService } from "@/services/items.service";
 
 export const ItemsPage = () => {
@@ -21,6 +22,7 @@ export const ItemsPage = () => {
   const [tipoSeleccionado, setTipoSeleccionado] = useState("producto");
   const [tipoFormulario, setTipoFormulario] = useState("producto");
   const [busqueda, setBusqueda] = useState("");
+  const [loadingItems, setLoadingItems] = useState(true);
 
   const loadItems = async () => {
     try {
@@ -29,6 +31,8 @@ export const ItemsPage = () => {
       setItems(lista);
     } catch (error) {
       console.error("Error cargando items:", error);
+    }finally {
+      setLoadingItems(false); 
     }
   };
 
@@ -53,6 +57,10 @@ export const ItemsPage = () => {
       .join("")
       .toUpperCase();
   };
+
+  if (loadingItems) {
+    return <Loading text="Cargando productos y servicios..." />;
+  }
 
   return (
     <div className="bg-[#F8FAF9] min-h-screen p-5">

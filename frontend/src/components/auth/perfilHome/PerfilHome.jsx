@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getMeService, logoutService } from "@/services/authService";
 import { MenuItem } from "./MenuItem";
 import { AvatarEmpresa } from "../../ui/AvatarEmpresa";
+import  Loading  from "../../ui/loading/Loading"
 import {
   UserIcon,
   BuildingOfficeIcon,
@@ -49,7 +50,7 @@ export const PerfilHome = () => {
     }
   };
 
-  if (!user) return <div className="p-10 text-center">Cargando perfil...</div>;
+  if (!user) return <Loading variant="overlay" text="Cargando perfil..." />
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 p-4 max-w-md mx-auto">

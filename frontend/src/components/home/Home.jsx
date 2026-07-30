@@ -6,24 +6,21 @@ import { ActividadSemanal } from "./components/ActividadSemanal";
 import { ClientesRecientes } from "@/components/ui/ClientesRecientes";
 import { useDashboard } from "./hooks/useDashboard";
 import { useFiltroPresupuestos } from "./hooks/usePresupuestosLista";
+import Loading from "@/components/ui/loading/Loading";
 
 export default function Home() {
   const { data, loading, error, periodo, cambiarPeriodo } = useDashboard();
 
-  const { 
-    presupuestos: listaData, 
-    paginaActual: pagina, 
-    totalPaginas, 
-    cambiarPagina, 
-    loading: listaLoading 
+  const {
+    presupuestos: listaData,
+    paginaActual: pagina,
+    totalPaginas,
+    cambiarPagina,
+    loading: listaLoading,
   } = useFiltroPresupuestos(5);
 
   if (loading && !data) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center w-full px-4">
-        <span className="text-sm text-black/55 font-medium">Cargando dashboard...</span>
-      </div>
-    );
+    return <Loading text="Cargando inicio..." />;
   }
 
   if (error) {
@@ -39,39 +36,38 @@ export default function Home() {
 
   return (
     <>
-    {/* Quitamos max-w-xl/md y usamos w-full con un padding lateral fluido (px-4 o px-5) */}
-    <div className="min-h-screen bg-gray-50 w-full px-4 sm:px-6 py-6 flex flex-col justify-between pb-28">
-      <div className="flex flex-col gap-5 w-full flex-1">
-        
-        <DateAndImg 
-          nombre={estadisticas.usuarioNombre} 
-          apellido={estadisticas.usuarioApellido}
-        />
+      {/* Quitamos max-w-xl/md y usamos w-full con un padding lateral fluido (px-4 o px-5) */}
 
-        <TotalActivo 
-          sumaTotal={estadisticas.sumaTotal}
-          totalPresupuestos={estadisticas.totalPresupuestos}
-          aceptados={estadisticas.aceptados}
-          rechazados={estadisticas.rechazados}
-        />
+      <div className="min-h-screen bg-gray-50 pb-24 p-4 max-w-md mx-auto">
+       
+          <DateAndImg
+            nombre={estadisticas.usuarioNombre}
+            apellido={estadisticas.usuarioApellido}
+          />
 
-        <ActividadSemanal 
-          actividadSemanal={actividadSemanal}
-          periodo={periodo}
-          cambiarPeriodo={cambiarPeriodo}
-        />
+          <TotalActivo
+            sumaTotal={estadisticas.sumaTotal}
+            totalPresupuestos={estadisticas.totalPresupuestos}
+            aceptados={estadisticas.aceptados}
+            rechazados={estadisticas.rechazados}
+          />
 
-        <ClientesRecientes 
-          presupuestos={listaData || []} 
-          paginaActual={pagina}
-          totalPaginas={totalPaginas}
-          cambiarPagina={cambiarPagina}
-          loading={listaLoading}
-          esVistaCompleta={false} 
-        />
+          <ActividadSemanal
+            actividadSemanal={actividadSemanal}
+            periodo={periodo}
+            cambiarPeriodo={cambiarPeriodo}
+          />
 
+          <ClientesRecientes
+            presupuestos={listaData || []}
+            paginaActual={pagina}
+            totalPaginas={totalPaginas}
+            cambiarPagina={cambiarPagina}
+            loading={listaLoading}
+            esVistaCompleta={false}
+          />
+   
       </div>
-    </div>
     </>
   );
 }

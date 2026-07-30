@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export const DateAndImg = ({ nombre, apellido }) => {
   return (
-    <div className="w-full h-[64px] bg-white border border-[#DFEAF9] shadow-sm rounded-full px-5 flex items-center justify-between">
+    <div className="w-full h-[64px] bg-white border border-[#DFEAF9] shadow-sm rounded-full px-5 flex items-center justify-between mb-4">
       
       {/* Contenedor unificado: Logo + Nombre */}
       <div className="flex items-center gap-3.5">

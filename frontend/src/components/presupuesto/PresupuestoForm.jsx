@@ -10,6 +10,7 @@ import { ItemCard } from "@/components/presupuesto/ItemCard";
 import { ObservacionesCard } from "@/components/presupuesto/ObservacionesCard";
 import { ObservacionesModal } from "@/components/presupuesto/ObservacionesModal";
 import { ClientesForm } from "@/components/clientes/ClientesForm";
+import Spinner from "@/components/ui/loading/Spinner";
 import {
   createPresupuestoService,
   downloadPresupuestoService,
@@ -37,6 +38,8 @@ export const PresupuestoForm = () => {
   const [pdfUrl, setPdfUrl] = useState("");
   const [telefonoCliente, setTelefonoCliente] = useState("");
 
+  const [loadingAction, setLoadingAction] = useState(null);
+
   const fechaActual = watch("fecha");
   const observacionesActual = watch("observaciones");
 
@@ -46,7 +49,7 @@ export const PresupuestoForm = () => {
 
       if (existe) {
         return prev.map((i) =>
-          i.id === item.id ? { ...i, cantidad: i.cantidad + 1 } : i
+          i.id === item.id ? { ...i, cantidad: i.cantidad + 1 } : i,
         );
       }
 
@@ -59,10 +62,8 @@ export const PresupuestoForm = () => {
 
     setItems((prev) =>
       prev.map((item) =>
-        item.id === id
-          ? { ...item, cantidad: Number(cantidad) }
-          : item
-      )
+        item.id === id ? { ...item, cantidad: Number(cantidad) } : item,
+      ),
     );
   };
 
@@ -71,9 +72,8 @@ export const PresupuestoForm = () => {
   };
 
   const total = items.reduce(
-    (acc, item) =>
-      acc + Number(item.precio) * Number(item.cantidad),
-    0
+    (acc, item) => acc + Number(item.precio) * Number(item.cantidad),
+    0,
   );
 
   const calcularVencimiento = (fecha, dias) => {
@@ -93,25 +93,25 @@ export const PresupuestoForm = () => {
   };
 
   const prepararTelefonoWhatsApp = (telefono) => {
-  let numero = telefono.replace(/\D/g, "");
+    let numero = telefono.replace(/\D/g, "");
 
-  // Si viene con 0 adelante
-  if (numero.startsWith("0")) {
-    numero = numero.substring(1);
-  }
+    // Si viene con 0 adelante
+    if (numero.startsWith("0")) {
+      numero = numero.substring(1);
+    }
 
-  // Si viene con 15 (formato viejo argentino)
-  if (numero.startsWith("15")) {
-    numero = numero.substring(2);
-  }
+    // Si viene con 15 (formato viejo argentino)
+    if (numero.startsWith("15")) {
+      numero = numero.substring(2);
+    }
 
-  // Agregar Argentina
-  if (!numero.startsWith("549")) {
-    numero = "549" + numero;
-  }
+    // Agregar Argentina
+    if (!numero.startsWith("549")) {
+      numero = "549" + numero;
+    }
 
-  return numero;
-};
+    return numero;
+  };
 
   const enviarPresupuesto = async (data, estado) => {
     try {
@@ -125,13 +125,13 @@ export const PresupuestoForm = () => {
         return;
       }
 
+      setLoadingAction(estado);
+      setMensaje("");
+
       const presupuesto = {
         cliente_id: cliente.id,
         fecha: data.fecha,
-        fecha_vencimiento: calcularVencimiento(
-          data.fecha,
-          validez
-        ),
+        fecha_vencimiento: calcularVencimiento(data.fecha, validez),
         estado,
         observaciones: data.observaciones,
         detalles: items.map((item) => ({
@@ -140,40 +140,28 @@ export const PresupuestoForm = () => {
         })),
       };
 
-      const response = await createPresupuestoService(
-        presupuesto
-      );
-
-      console.log("RESPUESTA BACKEND:", response);
+      const response = await createPresupuestoService(presupuesto);
 
       setPresupuestoId(response.presupuesto.id);
       setPdfUrl(response.presupuesto.pdf_url);
       setTelefonoCliente(response.presupuesto.cliente_telefono);
 
-      setTipoModal(
-        estado === "Guardado"
-          ? "presupuesto"
-          : "borrador"
-      );
+      setTipoModal(estado === "Guardado" ? "presupuesto" : "borrador");
 
       setMensaje("");
       setModalExito(true);
-
     } catch (error) {
       console.error(error);
 
-      setMensaje(
-        error.response?.data?.message ||
-        "Error creando presupuesto"
-      );
+      setMensaje(error.response?.data?.message || "Error creando presupuesto");
+    } finally {
+      setLoadingAction(null);
     }
   };
 
   const descargarPDF = async () => {
     try {
-      const blob = await downloadPresupuestoService(
-        presupuestoId
-      );
+      const blob = await downloadPresupuestoService(presupuestoId);
 
       const url = window.URL.createObjectURL(blob);
 
@@ -189,74 +177,49 @@ export const PresupuestoForm = () => {
       a.remove();
 
       window.URL.revokeObjectURL(url);
-
     } catch (error) {
-      console.error(
-        "Error descargando PDF:",
-        error
-      );
+      console.error("Error descargando PDF:", error);
     }
   };
 
-const enviarWhatsApp = async () => {
-  try {
-    const blob = await downloadPresupuestoService(
-      presupuestoId
-    );
+  const enviarWhatsApp = async () => {
+    try {
+      const blob = await downloadPresupuestoService(presupuestoId);
 
-    const archivo = new File(
-      [blob],
-      `Presupuesto-${presupuestoId}.pdf`,
-      {
+      const archivo = new File([blob], `Presupuesto-${presupuestoId}.pdf`, {
         type: "application/pdf",
-      }
-    );
-
-    if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
-      await navigator.share({
-        files: [archivo],
-        title: "Presupuesto",
-        text: "Te envío el presupuesto solicitado.",
       });
-    } else {
-      alert(
-        "Tu dispositivo no permite compartir archivos directamente."
-      );
-    }
 
-  } catch (error) {
-    console.error(
-      "Error compartiendo PDF:",
-      error
-    );
-  }
-};
+      if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+        await navigator.share({
+          files: [archivo],
+          title: "Presupuesto",
+          text: "Te envío el presupuesto solicitado.",
+        });
+      } else {
+        alert("Tu dispositivo no permite compartir archivos directamente.");
+      }
+    } catch (error) {
+      console.error("Error compartiendo PDF:", error);
+    }
+  };
 
   return (
     <>
       <form
-        onSubmit={handleSubmit((data) =>
-          enviarPresupuesto(data, "Guardado")
-        )}
+        onSubmit={handleSubmit((data) => enviarPresupuesto(data, "Guardado"))}
         className="space-y-4"
       >
-
-        <h2 className="text-lg font-bold text-[#123B5D]">
-          Datos básicos
-        </h2>
+        <h2 className="text-lg font-bold text-[#123B5D]">Datos básicos</h2>
 
         <BuscarCliente
           key={clienteKey}
           clienteSeleccionado={cliente}
           onSelect={setCliente}
-          onNuevoCliente={() =>
-            setModalCliente(true)
-          }
+          onNuevoCliente={() => setModalCliente(true)}
         />
 
-        <BuscarItem
-          onAgregarItem={agregarItem}
-        />
+        <BuscarItem onAgregarItem={agregarItem} />
 
         <div className="space-y-3">
           {items.map((item) => (
@@ -270,14 +233,12 @@ const enviarWhatsApp = async () => {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-
           <div>
             <label className="block mb-2 text-sm font-medium text-[#123B5D]">
               Fecha
             </label>
 
             <div className="relative">
-
               <Calendar
                 size={18}
                 strokeWidth={2.2}
@@ -291,91 +252,60 @@ const enviarWhatsApp = async () => {
                 {...register("fecha")}
                 className="w-full h-12 rounded-xl border border-gray-300 pl-10 pr-3 text-sm font-medium text-[#123B5D]"
               />
-
             </div>
           </div>
 
-
           <div className="relative">
-
             <label className="block mb-2 text-sm font-medium text-[#123B5D]">
               Validez del presupuesto
             </label>
 
             <button
               type="button"
-              onClick={() =>
-                setMostrarValidez(!mostrarValidez)
-              }
+              onClick={() => setMostrarValidez(!mostrarValidez)}
               className="w-full h-12 rounded-xl border border-gray-300 bg-white px-3 flex items-center justify-between"
             >
-
               <div className="flex items-center gap-2">
-
-                <Calendar
-                  size={18}
-                  className="text-[#123B5D]"
-                />
+                <Calendar size={18} className="text-[#123B5D]" />
 
                 <span className="text-sm font-medium text-[#123B5D]">
                   {validez} días
                 </span>
-
               </div>
 
-              <ChevronDown
-                size={18}
-                className="text-[#123B5D]"
-              />
-
+              <ChevronDown size={18} className="text-[#123B5D]" />
             </button>
-
 
             {mostrarValidez && (
               <div className="absolute top-full w-full bg-white border rounded-b-xl shadow-lg z-30">
-
-                {["05", "10", "15", "20", "25", "30"].map(
-                  (dia) => (
-
-                    <button
-                      key={dia}
-                      type="button"
-                      onClick={() => {
-                        setValidez(String(Number(dia)));
-                        setMostrarValidez(false);
-                      }}
-                      className="w-full py-3 text-[#123B5D] hover:bg-[#123B5D] hover:text-white"
-                    >
-                      {dia}
-                    </button>
-
-                  )
-                )}
-
+                {["05", "10", "15", "20", "25", "30"].map((dia) => (
+                  <button
+                    key={dia}
+                    type="button"
+                    onClick={() => {
+                      setValidez(String(Number(dia)));
+                      setMostrarValidez(false);
+                    }}
+                    className="w-full py-3 text-[#123B5D] hover:bg-[#123B5D] hover:text-white"
+                  >
+                    {dia}
+                  </button>
+                ))}
               </div>
             )}
-
           </div>
-
         </div>
-
 
         <ObservacionesCard
           observaciones={observacionesActual}
-          onOpen={() =>
-            setModalObservaciones(true)
-          }
+          onOpen={() => setModalObservaciones(true)}
         />
-
 
         <div>
           <div className="border-t border-[#D0D9D5]" />
 
           <div className="flex justify-between items-center px-1 mt-2">
-
-            <span className="text-lg font-semibold text-[#123B5D]">
-              Total:
-            </span>
+            <span className="text-lg font-semibold text-[#123B5D]">Total:</span>
 
             <span className="text-2xl font-semibold text-[#123B5D]">
               $
@@ -384,115 +314,97 @@ const enviarWhatsApp = async () => {
                 maximumFractionDigits: 2,
               })}
             </span>
-
           </div>
         </div>
 
-
         <div className="flex gap-3 pt-2 pb-5">
+          <button
+            type="button"
+            disabled={loadingAction !== null}
+            onClick={handleSubmit((data) =>
+              enviarPresupuesto(data, "Borrador"),
+            )}
+            className="flex-1 h-11 rounded-xl border border-[#123B5D] text-[#123B5D] flex items-center justify-center gap-2 disabled:opacity-70 transition-all"
+          >
+            {loadingAction === "Borrador" ? (
+              <>
+                <Spinner size="sm" />
+                <span className="text-sm font-medium">Guardando...</span>
+              </>
+            ) : (
+              <>
+                <Eye size={18} />
+                <span className="text-sm font-medium">Guardar borrador</span>
+              </>
+            )}
+          </button>
 
           <button
             type="button"
+            disabled={loadingAction !== null}
             onClick={handleSubmit((data) =>
-              enviarPresupuesto(data, "Borrador")
+              enviarPresupuesto(data, "Guardado"),
             )}
-            className="flex-1 h-11 rounded-xl border border-[#123B5D] text-[#123B5D] flex items-center justify-center gap-2"
+            className="flex-1 h-11 rounded-xl bg-[#528A72] hover:bg-[#43725d] text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-70 transition-all"
           >
-
-            <Eye size={18} />
-
-            Guardar borrador
-
+            {loadingAction === "Guardado" ? (
+              <>
+                <Spinner size="sm" />
+                <span className="text-sm">Generando...</span>
+              </>
+            ) : (
+              <span>Generar presupuesto</span>
+            )}
           </button>
-
-
-          <button
-            type="submit"
-            className="flex-1 h-11 rounded-xl bg-[#528A72] text-white font-semibold"
-          >
-            Generar presupuesto
-          </button>
-
         </div>
-
       </form>
-
 
       <ObservacionesModal
         open={modalObservaciones}
-        onClose={() =>
-          setModalObservaciones(false)
-        }
+        onClose={() => setModalObservaciones(false)}
         register={register}
       />
 
-
       <ClientesForm
         isOpen={modalCliente}
-        onClose={() =>
-          setModalCliente(false)
-        }
+        onClose={() => setModalCliente(false)}
         onSuccess={(response) => {
-
-          const nuevo =
-            response.cliente || response;
+          const nuevo = response.cliente || response;
 
           setCliente(nuevo);
           setModalCliente(false);
 
-          setClienteKey((prev) =>
-            prev + 1
-          );
-
+          setClienteKey((prev) => prev + 1);
         }}
       />
-
 
       <PresupuestoCreadoModal
         open={modalExito}
         tipo={tipoModal}
         onClose={() => {
-
           setModalExito(false);
           limpiarFormulario();
           setPresupuestoId(null);
           setPdfUrl("");
-
         }}
-
         onPrimary={async () => {
-
-          if (
-            tipoModal === "presupuesto" &&
-            presupuestoId
-          ) {
+          if (tipoModal === "presupuesto" && presupuestoId) {
             await descargarPDF();
           }
-
         }}
-
         onSecondary={() => {
+          if (tipoModal === "presupuesto" && telefonoCliente && pdfUrl) {
+            const mensaje = encodeURIComponent(
+              `Hola, te envío el presupuesto solicitado:\n\n${pdfUrl}`,
+            );
 
-          if (
-    tipoModal === "presupuesto" &&
-    telefonoCliente &&
-    pdfUrl
-  ) {
-
-    const mensaje = encodeURIComponent(
-      `Hola, te envío el presupuesto solicitado:\n\n${pdfUrl}`
-    );
-
-    window.open(
-      `https://wa.me/${telefonoCliente}?text=${mensaje}`,
-      "_blank"
-    );
-
-  }
-
+            window.open(
+              `https://wa.me/${telefonoCliente}?text=${mensaje}`,
+              "_blank",
+            );
+          }
         }}
       />
-
     </>
   );
 };

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
-
+import Spinner from "@/components/ui/loading/Spinner";
 import { createItemsService } from "@/services/items.service";
 
 
@@ -52,14 +52,8 @@ export const ItemsForm = ({
         tipo,
       };
 
-
-      console.log("ENVIANDO ITEM:", data);
-
-
       const response = await createItemsService(data);
 
-
-      console.log("RESPUESTA BACK:", response);
 
 
       if (onSuccess) {
@@ -172,16 +166,18 @@ export const ItemsForm = ({
               rounded-2xl
               transition-colors
               shadow-md
-              disabled:opacity-50
+              disabled:opacity-70
+              flex items-center justify-center gap-3
             "
           >
-
-            {
-              loading
-                ? "Creando..."
-                : "Crear item"
-            }
-
+            {loading ? (
+              <>
+                <Spinner size="sm" />
+                <span>Creando item...</span>
+              </>
+            ) : (
+              <span>Crear item</span>
+            )}
           </button>
 
         </div>

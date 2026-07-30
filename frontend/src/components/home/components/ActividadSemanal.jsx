@@ -4,7 +4,7 @@ import React from 'react';
 
 export const ActividadSemanal = ({ actividadSemanal = [], periodo, cambiarPeriodo }) => {
   return (
-    <div className="w-full bg-white shadow-[0px_4px_16px_rgba(0,31,77,0.06)] rounded-[20px] p-5 flex flex-col justify-between">
+    <div className="w-full bg-white shadow-[0px_4px_16px_rgba(0,31,77,0.06)] rounded-[20px] p-5 flex flex-col justify-between mb-4">
       
       {/* Cabecera: Título y Ver más */}
       <div className="flex justify-between items-center mb-4">

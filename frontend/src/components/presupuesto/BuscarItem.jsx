@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search } from "lucide-react";
-
+import Spinner from "@/components/ui/loading/Spinner";
 import { getItemsService } from "@/services/items.service";
 
 export const BuscarItem = ({ onAgregarItem }) => {
   const [items, setItems] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [mostrarLista, setMostrarLista] = useState(false);
+  const [loadingItems, setLoadingItems] = useState(true);
 
   const containerRef = useRef(null);
 
@@ -19,6 +20,8 @@ export const BuscarItem = ({ onAgregarItem }) => {
         setItems(data.items || data);
       } catch (error) {
         console.error(error);
+      }finally {
+        setLoadingItems(false); 
       }
     };
 
@@ -122,7 +125,12 @@ export const BuscarItem = ({ onAgregarItem }) => {
             overflow-y-auto
           "
         >
-          {itemsFiltrados.length > 0 ? (
+          {loadingItems ? (
+            <div className="p-6 flex flex-col items-center justify-center gap-2">
+              <Spinner size="sm" />
+              <p className="text-xs text-gray-500 font-medium">Cargando servicios...</p>
+            </div>
+          ) : itemsFiltrados.length > 0 ? (
             itemsFiltrados.map((item) => (
               <button
                 key={item.id}

@@ -11,6 +11,7 @@ import { registerSchema } from "@/lib/validations";
 import { Input } from "@/components/ui/Input";
 import { Terminos } from "@/components/auth/Terminos";
 import { registerService } from "@/services/authService";
+import Loading from "../ui/loading/Loading"
 
 
 export const RegisterForm = () => {
@@ -92,6 +93,10 @@ export const RegisterForm = () => {
   return (
 
     <div className="w-full max-w-md py-6">
+
+      {isSubmitting && (
+        <Loading variant="overlay" text="Iniciando sesión..." />
+      )}
 
 
       {/* Logo */}

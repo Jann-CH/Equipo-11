@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { ClientesForm } from "@/components/clientes/ClientesForm";
+import Loading from "../ui/loading/Loading";
 import { getClientesService } from "@/services/clientes.service";
 
 
@@ -25,6 +26,8 @@ export const ClientesPage = () => {
 
   const [clienteEditar, setClienteEditar] = useState(null);
 
+  const [loadingClientes, setLoadingClientes] = useState(true);
+
 
 
   const loadClientes = async () => {
@@ -32,8 +35,6 @@ export const ClientesPage = () => {
     try {
 
       const data = await getClientesService();
-
-      console.log("Clientes recibidos:", data);
 
 
       const lista = data.clientes || data;
@@ -46,6 +47,8 @@ export const ClientesPage = () => {
 
       console.error("Error cargando clientes:", error);
 
+    }finally {
+      setLoadingClientes(false); 
     }
 
   };
@@ -59,9 +62,9 @@ export const ClientesPage = () => {
 
   }, []);
 
-
-
-
+  if (loadingClientes) {
+    return <Loading text="Cargando clientes..." />;
+  }
 
   return (
 

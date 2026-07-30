@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, UserRoundPlus } from "lucide-react";
+import Spinner from "@/components/ui/loading/Spinner";
 
 import { getClientesService } from "@/services/clientes.service";
 
@@ -13,6 +14,7 @@ export const BuscarCliente = ({
   const [clientes, setClientes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [mostrarLista, setMostrarLista] = useState(false);
+  const [loadingClientes, setLoadingClientes] = useState(true);
 
   const ref = useRef(null);
 
@@ -23,6 +25,8 @@ export const BuscarCliente = ({
         setClientes(data.clientes || data);
       } catch (error) {
         console.error("Error cargando clientes", error);
+      } finally {
+        setLoadingClientes(false);
       }
     };
 
@@ -32,7 +36,7 @@ export const BuscarCliente = ({
   useEffect(() => {
     if (clienteSeleccionado) {
       setBusqueda(
-        `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}`
+        `${clienteSeleccionado.nombre} ${clienteSeleccionado.apellido}`,
       );
     } else {
       setBusqueda("");
@@ -48,8 +52,7 @@ export const BuscarCliente = ({
 
     document.addEventListener("mousedown", clickFuera);
 
-    return () =>
-      document.removeEventListener("mousedown", clickFuera);
+    return () => document.removeEventListener("mousedown", clickFuera);
   }, []);
 
   const filtrados = useMemo(() => {
@@ -157,7 +160,14 @@ export const BuscarCliente = ({
             overflow-y-auto
           "
         >
-          {filtrados.length > 0 ? (
+          {loadingClientes ? (
+            <div className="p-6 flex flex-col items-center justify-center gap-2">
+              <Spinner size="sm" />
+              <p className="text-xs text-gray-500 font-medium">
+                Cargando clientes...
+              </p>
+            </div>
+          ) : filtrados.length > 0 ? (
             filtrados.map((cliente) => (
               <button
                 key={cliente.id}
@@ -169,15 +179,11 @@ export const BuscarCliente = ({
                   {cliente.nombre} {cliente.apellido}
                 </p>
 
-                <p className="text-xs text-gray-500">
-                  {cliente.email}
-                </p>
+                <p className="text-xs text-gray-500">{cliente.email}</p>
               </button>
             ))
           ) : (
-            <p className="p-3 text-xs text-gray-500">
-              No hay clientes
-            </p>
+            <p className="p-3 text-xs text-gray-500">No hay clientes</p>
           )}
         </div>
       )}

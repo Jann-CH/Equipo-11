@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 // Componentes reutilizables de la aplicación
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
+import Loading from "@/components/ui/loading/Loading";
+import Spinner from "@/components/ui/loading/Spinner";
 // Permite conectar Zod con React Hook Form
 import { zodResolver } from "@hookform/resolvers/zod";
 // Esquema de validación del formulario
@@ -194,64 +196,65 @@ export const ClientesForm = ({
         onClose={onClose}
         title={isEditing ? "Editar cliente" : "Nuevo cliente"}
       >
-        {isLoadingCliente ? (
-          <div className="py-8 text-center text-gray-500">
-            Cargando datos del cliente...
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <Input
-              label={
-                <span>
-                  Nombre <span className="text-red-500">*</span>
-                </span>
-              }
-              placeholder="Nombre"
-              error={errors.nombre?.message}
-              {...register("nombre")}
-            />
+        <div className="relative">
+          {isLoadingCliente ? (
+            <div className="py-12">
+              <Loading variant="section" text="Cargando datos del cliente..." />
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <Input
+                label={
+                  <span>
+                    Nombre <span className="text-red-500">*</span>
+                  </span>
+                }
+                placeholder="Nombre"
+                error={errors.nombre?.message}
+                {...register("nombre")}
+              />
 
-            <Input
-              label={
-                <span>
-                  Apellido <span className="text-red-500">*</span>
-                </span>
-              }
-              placeholder="Apellido"
-              error={errors.apellido?.message}
-              {...register("apellido")}
-            />
+              <Input
+                label={
+                  <span>
+                    Apellido <span className="text-red-500">*</span>
+                  </span>
+                }
+                placeholder="Apellido"
+                error={errors.apellido?.message}
+                {...register("apellido")}
+              />
 
-            <Input
-              label={
-                <span>
-                  Número de contacto <span className="text-red-500">*</span>
-                </span>
-              }
-              type="tel"
-              placeholder="(+54) 118576-1235"
-              error={errors.telefono?.message}
-              {...register("telefono")}
-            />
+              <Input
+                label={
+                  <span>
+                    Número de contacto <span className="text-red-500">*</span>
+                  </span>
+                }
+                type="tel"
+                placeholder="(+54) 118576-1235"
+                error={errors.telefono?.message}
+                {...register("telefono")}
+              />
 
-            <Input
-              label={
-                <span>
-                  Email <span className="text-red-500">*</span>
-                </span>
-              }
-              type="email"
-              placeholder="Ingresá el email"
-              error={errors.email?.message}
-              {...register("email")}
-            />
+              <Input
+                label={
+                  <span>
+                    Email <span className="text-red-500">*</span>
+                  </span>
+                }
+                type="email"
+                placeholder="Ingresá el email"
+                error={errors.email?.message}
+                {...register("email")}
+              />
 
-            {errorServer && (
-              <p className="text-center text-sm text-red-500 mt-1">
-                {errorServer}
-              </p>
-            )}
-            {/** 
+              {errorServer && (
+                <p className="text-center text-sm text-red-500 mt-1">
+                  {errorServer}
+                </p>
+              )}
+              {/** 
                 *  Botón principal.
                 *  Mientras se envía:
                     • Se deshabilita.
@@ -261,23 +264,25 @@ export const ClientesForm = ({
                     envíe el formulario dos veces.
             */}
 
-            <div className="pt-2">
-              <button
+              <div className="pt-2">
+                <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-[#528A72] hover:bg-[#43725d] text-white font-medium py-3 rounded-2xl transition-colors shadow-md disabled:opacity-50"
+                className="w-full bg-[#528A72] hover:bg-[#43725d] text-white font-medium py-3 rounded-2xl transition-colors shadow-md disabled:opacity-70 flex items-center justify-center gap-3"
               >
-                {isSubmitting
-                  ? isEditing
-                    ? "Guardando..."
-                    : "Creando..."
-                  : isEditing
-                    ? "Guardar cambios"
-                    : "Crear cliente"}
+                {isSubmitting ? (
+                  <>
+                    <Spinner size="sm" />
+                    <span>{isEditing ? "Guardando cambios..." : "Creando cliente..."}</span>
+                  </>
+                ) : (
+                  <span>{isEditing ? "Guardar cambios" : "Crear cliente"}</span>
+                )}
               </button>
-            </div>
-          </form>
-        )}
+              </div>
+            </form>
+          )}
+        </div>
       </Modal>
     </>
   );

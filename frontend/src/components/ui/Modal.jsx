@@ -8,7 +8,11 @@ export const Modal = ({ isOpen, onClose, title, children }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      {/* Contenedor principal del modal */}
+      {/* 
+        AQUÍ AGREGAMOS "relative": 
+        Esto hace que cualquier elemento hijo con "absolute" o "fixed" 
+        tome este contenedor como su límite visual de referencia.
+      */}
       <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
         
         {/* Encabezado del Modal */}

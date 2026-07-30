@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "@/lib/validations";
 import { Input } from "@/components/ui/Input";
 import { loginService } from "@/services/authService";
+import Loading from "../ui/loading/Loading"
 
 export const LoginForm = () => {
   const router = useRouter();
@@ -37,7 +38,11 @@ export const LoginForm = () => {
   };
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-md relative">
+
+      {isSubmitting && (
+        <Loading variant="overlay" text="Iniciando sesión..." />
+      )}
 
       {/* Logo */}
       <div className="flex justify-center mb-8">

@@ -9,7 +9,7 @@ export const TotalActivo = ({
   rechazados = 0 
 }) => {
   return (
-    <div className="w-full bg-[#013364] bg-gradient-to-t from-black/10 to-black/10 shadow-[0px_4px_16px_rgba(0,31,77,0.10)] rounded-[20px] p-6 text-white flex flex-col justify-between">
+    <div className="w-full bg-[#013364] bg-gradient-to-t from-black/10 to-black/10 shadow-[0px_4px_16px_rgba(0,31,77,0.10)] rounded-[20px] p-6 text-white flex flex-col justify-between  mb-4">
       {/* Parte superior: Título y Monto */}
       <div>
         <span className="text-white/70 text-sm font-medium block">
