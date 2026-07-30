@@ -13,6 +13,11 @@ export const getPresupuestosService = async () => {
   return data;
 };
 
+export const getDetallePresupuestosService = async (presupuestosId) => {
+  const { data } = await api.get(`/presupuestos/${presupuestosId}`);
+  return data;
+};
+
 export const updatePresupuestoPdfService = async (presupuestosId, presupuestoData) => {
   const { data } = await api.put(
     `/presupuestos/${presupuestosId}`,

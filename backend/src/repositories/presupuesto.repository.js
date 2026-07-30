@@ -95,6 +95,7 @@ export const findPresupuestoConDetallesRepository = async (presupuestoId, usuari
     return result.rows[0] || null;
 };
 
+
 /**
  * ==================================================
  * REPOSITORY: Crear presupuesto
@@ -241,6 +242,7 @@ export const addPdfRepository = async (dato) => {
  * =================================================
  */
 export const findPresupuestosConFiltrosRepository = async (usuarioId, filtros, limite, skip) => {
+    
     const conditions = ["p.usuario_id = $1", "p.deleted_at IS NULL"];
     const values = [usuarioId];
 
@@ -255,6 +257,36 @@ export const findPresupuestosConFiltrosRepository = async (usuarioId, filtros, l
             OR c.apellido ILIKE $${values.length + 1})`
         );
         values.push(`%${filtros.busqueda}%`);
+    }
+
+    // NUEVO: Filtro por rango de fechas (ej: seleccionado en el calendario)
+    if (filtros.fechaInicio && filtros.fechaFin) {
+        conditions.push(`p.fecha BETWEEN $${values.length + 1} AND $${values.length + 2}`);
+        values.push(filtros.fechaInicio, filtros.fechaFin);
+    } else if (filtros.fechaInicio) {
+        // Por si querés filtrar desde una fecha exacta en adelante
+        conditions.push(`p.fecha >= $${values.length + 1}`);
+        values.push(filtros.fechaInicio);
+    }
+
+    // NUEVO: Filtro por montos (ej: montoMinimo y montoMaximo)
+    if (filtros.montoMinimo !== undefined) {
+        conditions.push(`p.total >= $${values.length + 1}`); // Ajusta "total" al nombre de tu columna de monto
+        values.push(filtros.montoMinimo);
+    }
+    if (filtros.montoMaximo !== undefined) {
+        conditions.push(`p.total <= $${values.length + 1}`);
+        values.push(filtros.montoMaximo);
+    }
+
+    // NUEVO: Ordenamiento dinámico (por defecto más reciente)
+    let ordenSQL = "ORDER BY p.created_at DESC";
+    if (filtros.orden === "antiguo") {
+        ordenSQL = "ORDER BY p.created_at ASC";
+    } else if (filtros.orden === "monto_alto") {
+        ordenSQL = "ORDER BY p.total DESC";
+    } else if (filtros.orden === "monto_bajo") {
+        ordenSQL = "ORDER BY p.total ASC";
     }
 
     const query = `
@@ -284,6 +316,25 @@ export const contarPresupuestosConFiltrosRepository = async (usuarioId, filtros)
     if (filtros.estado) {
         conditions.push(`p.estado = $${values.length + 1}`);
         values.push(filtros.estado);
+    }
+
+    // NUEVO: Agregar la misma condición de fechas para el conteo total
+    if (filtros.fechaInicio && filtros.fechaFin) {
+        conditions.push(`p.fecha BETWEEN $${values.length + 1} AND $${values.length + 2}`);
+        values.push(filtros.fechaInicio, filtros.fechaFin);
+    } else if (filtros.fechaInicio) {
+        conditions.push(`p.fecha >= $${values.length + 1}`);
+        values.push(filtros.fechaInicio);
+    }
+
+    // NUEVO: Filtro por montos (ej: montoMinimo y montoMaximo)
+    if (filtros.montoMinimo !== undefined) {
+        conditions.push(`p.total >= $${values.length + 1}`); // Ajusta "total" al nombre de tu columna de monto
+        values.push(filtros.montoMinimo);
+    }
+    if (filtros.montoMaximo !== undefined) {
+        conditions.push(`p.total <= $${values.length + 1}`);
+        values.push(filtros.montoMaximo);
     }
 
     const query = `
