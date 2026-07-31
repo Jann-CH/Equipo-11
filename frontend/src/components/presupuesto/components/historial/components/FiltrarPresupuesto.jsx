@@ -2,181 +2,273 @@
 
 import { useState } from "react";
 
-export default function FiltrarPresupuesto({ onClose, onAplicar }) {
-    const [periodoSeleccionado, setPeriodoSeleccionado] = useState("mes");
-    const [estadoSeleccionado, setEstadoSeleccionado] = useState("");
-    const [montoMin, setMontoMin] = useState("");
-    const [montoMax, setMontoMax] = useState("");
+export default function FiltrarPresupuesto({
+  onClose,
+  onAplicar,
+  filtrosIniciales,
+}) {
+  // Inicializamos vacíos para que no aplique ningún filtro por defecto
+  const [periodoSeleccionado, setPeriodoSeleccionado] = useState(
+    filtrosIniciales?.periodoSeleccionado || "",
+  );
+  const [estadoSeleccionado, setEstadoSeleccionado] = useState(
+    filtrosIniciales?.estado || "",
+  );
+  const [montoMin, setMontoMin] = useState(filtrosIniciales?.montoMin || "");
+  const [montoMax, setMontoMax] = useState(filtrosIniciales?.montoMax || "");
 
-    const [fechaInicio, setFechaInicio] = useState("");
-    const [fechaFin, setFechaFin] = useState("");
+  const [fechaInicio, setFechaInicio] = useState(
+    filtrosIniciales?.fechaInicio || "",
+  );
+  const [fechaFin, setFechaFin] = useState(filtrosIniciales?.fechaFin || "");
 
-    const seleccionarPeriodo = (tipo) => {
-        setPeriodoSeleccionado(tipo);
-        const hoy = new Date();
-        let inicio = new Date();
+  const seleccionarPeriodo = (tipo) => {
+    // Si hace clic en el mismo periodo que ya estaba activo, lo deselecciona
+    if (periodoSeleccionado === tipo) {
+      setPeriodoSeleccionado("");
+      setFechaInicio("");
+      setFechaFin("");
+      return;
+    }
 
-        if (tipo === "hoy") {
-            inicio = hoy;
-        } else if (tipo === "semana") {
-            inicio.setDate(hoy.getDate() - 7);
-        } else if (tipo === "mes") {
-            inicio.setMonth(hoy.getMonth() - 1);
-        } else {
-            return;
-        }
+    setPeriodoSeleccionado(tipo);
+    const hoy = new Date();
+    let inicio = new Date();
 
-        const formatear = (d) => d.toISOString().split("T")[0];
-        setFechaInicio(formatear(inicio));
-        setFechaFin(formatear(hoy));
-    };
+    if (tipo === "hoy") {
+      inicio = hoy;
+    } else if (tipo === "semana") {
+      inicio.setDate(hoy.getDate() - 7);
+    } else if (tipo === "mes") {
+      inicio.setMonth(hoy.getMonth() - 1);
+    } else {
+      return;
+    }
 
-    const handleBorrar = () => {
-        setPeriodoSeleccionado(null);
-        setEstadoSeleccionado("");
-        setMontoMin("");
-        setMontoMax("");
-        setFechaInicio("");
-        setFechaFin("");
-    };
+    const formatear = (d) => d.toISOString().split("T")[0];
+    setFechaInicio(formatear(inicio));
+    setFechaFin(formatear(hoy));
+  };
 
-    const handleAplicar = () => {
-        onAplicar({
-            fechaInicio,
-            fechaFin,
-            estado: estadoSeleccionado,
-            montoMin,
-            montoMax,
-        });
-    };
+  const handleBorrar = () => {
+    setPeriodoSeleccionado("");
+    setEstadoSeleccionado("");
+    setMontoMin("");
+    setMontoMax("");
+    setFechaInicio("");
+    setFechaFin("");
+  };
 
-    return (
-        <div className="fixed inset-0 bg-black/50 z-50 flex justify-end">
-            {/* AQUÍ ESTABA EL ERROR: Cambiamos h-full por h-screen para forzar el alto real de la pantalla */}
-            <div className="w-full max-w-md bg-white h-screen relative flex flex-col shadow-2xl">
-                
-                {/* Cabecera */}
-                <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-white z-10 flex-shrink-0">
-                    <div className="flex items-center gap-3">
-                        <button onClick={onClose} className="text-gray-800 font-bold text-lg">✕</button>
-                        <h2 className="text-lg font-bold text-gray-900">Filtrar presupuestos</h2>
-                    </div>
-                    <button onClick={handleBorrar} className="text-emerald-700 font-medium text-sm hover:underline">
-                        Borrar
-                    </button>
-                </div>
+  const handleAplicar = () => {
+    onAplicar({
+      fechaInicio,
+      fechaFin,
+      estado: estadoSeleccionado,
+      montoMin,
+      montoMax,
+      periodoSeleccionado,
+    });
+    onClose();
+  };
 
-                {/* Contenido scrolleable con espacio abajo para que no lo tape el botón */}
-                <div className="overflow-y-auto flex-1 p-4 space-y-6 pb-24">
-                    
-                    {/* ESTADOS */}
-                    <div>
-                        <h3 className="text-sm font-semibold text-[#0A1B2A] mb-3">Estado</h3>
-                        <div className="flex flex-col gap-2">
-                            {[
-                                { label: "Pendientes", val: "Pendiente" },
-                                { label: "Aprobados", val: "Aprobado" },
-                                { label: "Rechazados", val: "Rechazado" },
-                                { label: "Borradores", val: "Borrador" }
-                            ].map((est) => (
-                                <button
-                                    key={est.val}
-                                    onClick={() => setEstadoSeleccionado(estadoSeleccionado === est.val ? "" : est.val)}
-                                    className={`text-left px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                                        estadoSeleccionado === est.val 
-                                            ? "text-[#0A1B2A] font-bold bg-gray-100" 
-                                            : "text-gray-700 hover:bg-gray-50"
-                                    }`}
-                                >
-                                    {est.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex justify-end">
+      {/* Panel lateral */}
+      <div className="w-full max-w-md bg-white h-full flex flex-col shadow-2xl">
+        {/* Cabecera */}
+        <div className="relative flex justify-between items-center p-4 border-b border-gray-100 flex-shrink-0 bg-white">
+          {/* Botón Cerrar (Izquierda) */}
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-900 hover:bg-gray-100 w-8 h-8 flex items-center justify-center rounded-full transition-colors z-10"
+          >
+            <span className="font-bold text-lg leading-none">✕</span>
+          </button>
 
-                    {/* PERIODO DE TIEMPO */}
-                    <div className="space-y-2">
-                        {[
-                            { id: "hoy", label: "Hoy" },
-                            { id: "semana", label: "Última semana" },
-                            { id: "mes", label: "Último mes" },
-                            { id: "personalizado", label: "Personalizado" }
-                        ].map((item) => (
-                            <label key={item.id} className="flex items-center gap-3 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="periodo"
-                                    checked={periodoSeleccionado === item.id}
-                                    onChange={() => seleccionarPeriodo(item.id)}
-                                    className="w-4 h-4 text-[#0A1B2A] accent-[#0A1B2A]"
-                                />
-                                <span className="text-sm text-gray-800">{item.label}</span>
-                            </label>
-                        ))}
+          {/* Título (Centro absoluto) */}
+          <h2 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-bold text-[#013364]">
+            Filtrar presupuestos
+          </h2>
 
-                        {/* FECHA PERSONALIZADA */}
-                        <div className="grid grid-cols-2 gap-3 pt-2">
-                            <div>
-                                <label className="text-xs text-gray-500 mb-1 block">Desde</label>
-                                <input
-                                    type="date"
-                                    value={fechaInicio}
-                                    onChange={(e) => { setFechaInicio(e.target.value); setPeriodoSeleccionado("personalizado"); }}
-                                    className="w-full p-2.5 text-xs bg-white rounded-xl border border-gray-200 text-gray-700"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs text-gray-500 mb-1 block">Hasta</label>
-                                <input
-                                    type="date"
-                                    value={fechaFin}
-                                    onChange={(e) => { setFechaFin(e.target.value); setPeriodoSeleccionado("personalizado"); }}
-                                    className="w-full p-2.5 text-xs bg-white rounded-xl border border-gray-200 text-gray-700"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* MONTO */}
-                    <div>
-                        <h3 className="text-sm font-semibold text-[#0A1B2A] mb-3">Monto</h3>
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="text-xs text-gray-500 mb-1 block">Desde</label>
-                                <input
-                                    type="number"
-                                    placeholder="$"
-                                    value={montoMin}
-                                    onChange={(e) => setMontoMin(e.target.value)}
-                                    className="w-full p-2.5 text-xs bg-white rounded-xl border border-gray-200 text-gray-700"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs text-gray-500 mb-1 block">Hasta</label>
-                                <input
-                                    type="number"
-                                    placeholder="$"
-                                    value={montoMax}
-                                    onChange={(e) => setMontoMax(e.target.value)}
-                                    className="w-full p-2.5 text-xs bg-white rounded-xl border border-gray-200 text-gray-700"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                {/* BOTÓN APLICAR FIJO ABAJO */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 shadow-lg">
-                    <button
-                        onClick={handleAplicar}
-                        className="w-full py-3.5 bg-emerald-700 text-white rounded-2xl font-bold text-sm shadow-md hover:bg-emerald-800 transition-all"
-                    >
-                        Aplicar filtro
-                    </button>
-                </div>
-
-            </div>
+          {/* Botón Borrar (Derecha) */}
+          <button
+            onClick={handleBorrar}
+            className="text-red-600 font-medium text-sm hover:text-red-700 hover:underline z-10 transition-colors"
+          >
+            Borrar
+          </button>
         </div>
-    );
+
+        {/* Contenido scrolleable */}
+        <div className="overflow-y-auto flex-1 p-4 space-y-6">
+          {/* ESTADOS */}
+          <div>
+            <h3 className="text-sm font-semibold text-[#013364] mb-3">
+              Estado
+            </h3>
+            <div className="flex flex-col gap-2">
+              {[
+                { label: "Pendientes", val: "Pendiente" },
+                { label: "Aprobados", val: "Aprobado" },
+                { label: "Rechazados", val: "Rechazado" },
+                { label: "Borradores", val: "Borrador" },
+              ].map((est) => {
+                const activo = estadoSeleccionado === est.val;
+                return (
+                  <button
+                    key={est.val}
+                    onClick={() => setEstadoSeleccionado(activo ? "" : est.val)}
+                    className={`flex items-center gap-3 text-left px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all ${
+                      activo
+                        ? "bg-[#013364]/10 text-[#013364] font-bold shadow-sm"
+                        : "text-black/30 hover:text-gray-900 hover:bg-gray-50"
+                    }`}
+                  >
+                    {/* Caja de selección / Checkbox personalizado */}
+                    <div
+                      className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all flex-shrink-0 ${
+                        activo
+                          ? "bg-[#013364] border-[#013364] text-white"
+                          : "border-gray-200 bg-white"
+                      }`}
+                    >
+                      {activo && (
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={3}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-sm">{est.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {/* PERIODO DE TIEMPO */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-[#013364] mb-3">
+              Fecha
+            </h3>
+            <div className="flex flex-col gap-2">
+              {[
+                { id: "hoy", label: "Hoy" },
+                { id: "semana", label: "Última semana" },
+                { id: "mes", label: "Último mes" },
+                { id: "personalizado", label: "Personalizado" },
+              ].map((item) => {
+                const activo = periodoSeleccionado === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => seleccionarPeriodo(item.id)}
+                    className={`flex items-center gap-3 text-left px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all w-full ${
+                      activo
+                        ? "bg-[#013364]/10 text-[#013364] font-bold shadow-sm"
+                        : "text-black/30 hover:text-gray-900 hover:bg-gray-50"
+                    }`}
+                  >
+                    {/* Círculo de Radio personalizado con su punto central */}
+                    <div
+                      className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all flex-shrink-0 ${
+                        activo ? "border-[#013364]" : "border-gray-200 bg-white"
+                      }`}
+                    >
+                      {activo && (
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#013364]" />
+                      )}
+                    </div>
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* FECHA PERSONALIZADA */}
+            <div className="grid grid-cols-2 gap-3 pt-3">
+              <div>
+                <label className="text-xs text-[#013364] mb-1 block">
+                  Desde
+                </label>
+                <input
+                  type="date"
+                  value={fechaInicio}
+                  onChange={(e) => {
+                    setFechaInicio(e.target.value);
+                    setPeriodoSeleccionado("personalizado");
+                  }}
+                  className="w-full p-2.5 text-xs bg-white rounded-xl border border-gray-200 text-gray-700"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-[#013364] mb-1 block">
+                  Hasta
+                </label>
+                <input
+                  type="date"
+                  value={fechaFin}
+                  onChange={(e) => {
+                    setFechaFin(e.target.value);
+                    setPeriodoSeleccionado("personalizado");
+                  }}
+                  className="w-full p-2.5 text-xs bg-white rounded-xl border border-gray-200 text-gray-700"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* MONTO */}
+          <div>
+            <h3 className="text-sm font-semibold text-[#013364] mb-3">Monto</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-[#013364] mb-1 block">
+                  Desde
+                </label>
+                <input
+                  type="number"
+                  placeholder="$"
+                  value={montoMin}
+                  onChange={(e) => setMontoMin(e.target.value)}
+                  className="w-full p-2.5 text-xs bg-white rounded-xl border border-gray-200 text-gray-700"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-[#013364] mb-1 block">
+                  Hasta
+                </label>
+                <input
+                  type="number"
+                  placeholder="$"
+                  value={montoMax}
+                  onChange={(e) => setMontoMax(e.target.value)}
+                  className="w-full p-2.5 text-xs bg-white rounded-xl border border-gray-200 text-[#013364]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* BOTÓN APLICAR */}
+          <div className="pt-6 pb-6">
+            <button
+              onClick={handleAplicar}
+              className="w-full py-3.5 bg-emerald-700 text-white rounded-2xl font-bold text-sm shadow-md hover:bg-emerald-800 transition-all"
+            >
+              Aplicar filtro
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

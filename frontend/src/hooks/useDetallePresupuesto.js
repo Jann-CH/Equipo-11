@@ -14,7 +14,7 @@ export function useDetallePresupuesto(presupuestoId) {
             setLoading(true);
             setError(null);
             const resultado = await getDetallePresupuestosService(presupuestoId);
-            setData(resultado);
+            setData(resultado.presupuesto);
         } catch (err) {
             setError(err.response?.data?.message || "Error al cargar el detalle del presupuesto");
         } finally {

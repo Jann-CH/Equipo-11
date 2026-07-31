@@ -24,8 +24,6 @@ export default function Historial() {
     limpiarFiltros,
   } = useFiltroPresupuestos(5);
 
-  console.log("Total Registro: ", totalRegistros);
-
   // Función para manejar el cambio de vista y limpiar/ajustar filtros si es necesario
   const cambiarVista = (nuevaVista) => {
     setVistaActiva(nuevaVista);
@@ -34,6 +32,9 @@ export default function Historial() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 p-4 max-w-md mx-auto">
+      <h1 className="text-[24px] font-bold leading-[32px] text-[#0B1001]  mb-4">
+        Historial
+      </h1>
       {/* Componente para alternar entre Listado y Calendario */}
       <ButtonListadoCalendario
         vistaActiva={vistaActiva}
@@ -43,7 +44,10 @@ export default function Historial() {
       {/* Renderizado condicional según la pestaña elegida */}
       {vistaActiva === "listado" ? (
         <>
-          <FiltrosPresupuestos onFiltrar={actualizarFiltros} totalRegistros={totalRegistros} />
+          <FiltrosPresupuestos
+            onFiltrar={actualizarFiltros}
+            totalRegistros={totalRegistros}
+          />
 
           {loading && <Spinner />}
           {error && <p className="text-red-500 text-center mt-4">{error}</p>}

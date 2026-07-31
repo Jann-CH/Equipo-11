@@ -92,10 +92,10 @@ export const ClientesRecientes = ({
                 <span
                   className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold flex items-center gap-1 ${
                     item.estado === "Aceptado" || item.estado === "Aprobado"
-                      ? "bg-[#E8F5E9] text-[#2E7D5B]"
+                      ? "bg-[#E8F5E9] text-[#4CAF50]"
                       : item.estado === "Rechazado"
                         ? "bg-[#FFEBEE] text-[#C62828]"
-                        : "bg-[#FFF8E1] text-[#F57F17]" // Naranja para Pendiente / Guardado
+                        : "bg-[#FFF8E1] text-[#FFC107]" // Naranja para Pendiente / Guardado
                   }`}
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-current"></span>

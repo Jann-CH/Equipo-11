@@ -28,7 +28,10 @@ export const findPresupuestoConClienteRepository = async (presupuestoId, usuario
  * y datos del cliente
  * ==================================================
  */
-export const findPresupuestoConDetallesRepository = async (presupuestoId, usuarioId) => {
+export const findPresupuestoConDetallesRepository = async (
+    presupuestoId, 
+    usuarioId
+) => {
     const query = `
         SELECT
             p.id,
@@ -245,8 +248,12 @@ export const findPresupuestosConFiltrosRepository = async (usuarioId, filtros, l
     
     const conditions = ["p.usuario_id = $1", "p.deleted_at IS NULL"];
     const values = [usuarioId];
-
+    
     if (filtros.estado) {
+        if(filtros.estado === "Pendiente"){
+            filtros.estado = "Guardado"
+        }
+        
         conditions.push(`p.estado = $${values.length + 1}`);
         values.push(filtros.estado);
     }
@@ -312,8 +319,11 @@ export const findPresupuestosConFiltrosRepository = async (usuarioId, filtros, l
 export const contarPresupuestosConFiltrosRepository = async (usuarioId, filtros) => {
     const conditions = ["p.usuario_id = $1", "p.deleted_at IS NULL"];
     const values = [usuarioId];
-
+    
     if (filtros.estado) {
+        if(filtros.estado === "Pendiente"){
+            filtros.estado = "guardado"
+        }
         conditions.push(`p.estado = $${values.length + 1}`);
         values.push(filtros.estado);
     }
