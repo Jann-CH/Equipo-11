@@ -46,8 +46,6 @@ export default function ClienteConPresupuesto({
   onCambiarPagina,
 }) {
 
-  console.log("presupuesto: ", presupuestos)
-
   return (
     <div className="flex flex-col gap-2 flex-1 my-1">
       {/* Lista de presupuestos */}
@@ -63,7 +61,7 @@ export default function ClienteConPresupuesto({
           presupuestos.map((item) => (
             <Link
               key={item.id}
-              href={`/presupuestos/${item.id}`}
+              href={`/historial/${item.id}`}
               className="flex justify-between items-center bg-white border border-gray-100 shadow-sm p-3 rounded-[16px] transition-all hover:shadow-md cursor-pointer"
             >
               <div className="flex items-center gap-3">

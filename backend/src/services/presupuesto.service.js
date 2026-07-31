@@ -2,6 +2,7 @@ import { uploadPresupuestoService } from "./files.service.js";
 import { AppError } from "../utils/AppError.util.js";
 
 import {
+    verifyPresupuestoByIdExistsRepository,
     createPresupuestoTransaccionRepository,
     findPresupuestoConDetallesRepository,
     addPdfRepository,
@@ -10,6 +11,7 @@ import {
     contarPresupuestosConFiltrosRepository,
     getDashboardDataRepository,
     getBudgetRepository,
+    updateStateRepository,
 } from "../repositories/presupuesto.repository.js";
 
 import { verifyUserByIdExistsRepository } from "../repositories/usuario.repository.js";
@@ -161,8 +163,6 @@ export const filtroPresupuestoService = async (usuarioId, pagina = 1, limite = 1
 
 export const getDashboardDataService = async ( usuarioId, periodo ) => {
 
-    console.log("ID: ",usuarioId)
-
     // 1. Verificamos si el usuario existe
     const existeUsuario = await verifyUserByIdExistsRepository(usuarioId);
 
@@ -186,4 +186,29 @@ export const getBudgetService = async (usuarioId, page, limit) => {
         limite: parsedLimit,
         data: presupuestos
     };
+};
+
+export const updateStateService = async (estado, presupuestoId, usuarioId) => {
+    
+    // 1. Validar que el estado llegue (Código 400 Bad Request)
+    if (!estado) {
+        throw new AppError("El estado es obligatorio", 400);
+    }
+
+    // 2. Opcional: Validar si el estado enviado es válido según tu ENUM de la BD
+    if (!ESTADOS_VALIDOS.includes(estado)) {
+        throw new AppError("El estado proporcionado no es válido", 400);
+    }
+
+    // 3. Ejecutar la actualización directamente
+    // El repositorio ya se encarga de verificar que el presupuesto pertenezca al usuario 
+    // y no esté eliminado (deleted_at IS NULL).
+    const presupuestoActualizado = await updateStateRepository(estado, presupuestoId, usuarioId);
+
+    // 4. Si no devolvió nada, significa que o no existe, o no pertenece al usuario, o está borrado
+    if (!presupuestoActualizado) {
+        throw new AppError("El presupuesto no existe o no tienes permisos para modificarlo", 404);
+    }
+
+    return presupuestoActualizado;
 };

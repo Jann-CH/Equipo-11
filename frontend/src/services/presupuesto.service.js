@@ -27,6 +27,13 @@ export const updatePresupuestoPdfService = async (presupuestosId, presupuestoDat
   return data;
 };
 
+export const updatePresupuestoEstadoService = async (estado, presupuestoId) =>{
+  const { data } = await api.patch(
+    `/presupuestos/${presupuestoId}`,
+    { estado } 
+  )
+}
+
 
 export const getPresupuestosByIdService = async (presupuestosId) => {
   const { data } = await api.get(`/presupuestos/${presupuestosId}`);

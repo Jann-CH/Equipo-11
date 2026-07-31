@@ -5,6 +5,7 @@ import {
     filtroPresupuestoService,
     getDashboardDataService,
     getBudgetService,
+    updateStateService,
 } from "../services/presupuesto.service.js";
 
 import {
@@ -233,4 +234,25 @@ export const downloadPdfController = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+};
+
+export const updateStateController = async (req, res, next) => {
+    try {
+        const usuarioId = req.auth.id;
+        const { id: presupuestoId } = req.params;
+        const { estado } = req.body;
+
+        console.log("Usuario ID, ", usuarioId, " Presupuesto: ",presupuestoId, " estado: ",estado);
+
+        const presupuestoActualizado = await updateStateService(estado, presupuestoId, usuarioId);
+        
+        res.status(200).json({
+            success: true,
+            message: "Se actualizó el estado del presupuesto exitosamente",
+            presupuesto: presupuestoActualizado,
+        });
+
+    } catch (err) {
+        next(err);
+    } 
 };

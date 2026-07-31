@@ -1,4 +1,4 @@
-import Historial from "@/components/presupuesto/components/historial/Historial";
+import Historial from "@/components/historial/Historial";
 
 export default function PresupuestoHistorial() {
   return (

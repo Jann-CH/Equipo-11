@@ -66,9 +66,9 @@ export const Navbar = () => {
           )}
         </Link>
 
-        {/* --- CLIENTES (Cuadro azul al seleccionar) --- */}
-        <Link href="/presupuestos/historial" className={getBoxLinkStyles("/presupuesto/historial")}>
-          {isActive("/presupuestos/historial") ? (
+        {/* --- PRESUPUESTO HISORIAL (Cuadro azul al seleccionar) --- */}
+        <Link href="/historial" className={getBoxLinkStyles("/historial")}>
+          {isActive("/historial") ? (
             <ListBulletIconSolid className="h-7 w-7" />
           ) : (
             <ListBulletIconOutline className="h-7 w-7" />

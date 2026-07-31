@@ -22,6 +22,26 @@ export const findPresupuestoConClienteRepository = async (presupuestoId, usuario
     return result.rows[0] || null;
 };
 
+export const verifyPresupuestoByIdExistsRepository = async (presuespotId) => {
+    const query = `
+        SELECT EXISTS (
+            SELECT 1 
+            FROM presupuestos 
+            WHERE id = $1 
+            AND deleted_at IS NULL
+        ) AS existe;
+    `;
+
+    try {
+        const { rows } = await pool.query(query, [presupuestoId]);
+        return rows[0].existe; // Retorna true o false
+    } catch (error) {
+        console.error("Error al verificar si el usuario existe por ID:", error);
+        throw error;
+    }
+};
+
+
 /**
  * ==================================================
  * Obtiene un presupuesto completo con sus detalles
@@ -474,3 +494,32 @@ export const getBudgetRepository = async (usuarioId, limit = null, offset = 0) =
 
     return rows;
 };
+
+export const updateStateRepository = async ( 
+    estado, presupuestoId, usuarioId 
+) =>{
+    
+    const query = `
+        UPDATE presupuestos
+        SET 
+            estado = $1,
+            updated_at = NOW()
+        WHERE id = $2
+          AND usuario_id = $3
+          AND deleted_at IS NULL
+        RETURNING 
+            id,
+            estado,
+            updated_at;
+    `;
+
+
+    // Pasamos los 3 parámetros en el orden exacto de los $
+    const result = await pool.query(
+        query, 
+        [estado, presupuestoId, usuarioId]
+    );
+
+    return result.rows[0] || null;
+
+}

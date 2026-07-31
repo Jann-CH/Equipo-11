@@ -8,6 +8,7 @@ import {
     getDashboardController,
     getBudgetController,
     downloadPdfController,
+    updateStateController,
 } from "../controllers/presupuesto.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validateUUID } from "../middlewares/validateUUID.middleware.js";
@@ -47,5 +48,7 @@ router.get("/:id/pdf", validateUUID, downloadPdfController);
 
 // Ruta por ID
 router.get("/:id", validateUUID, getPresupuestoById);
+//Ruta de ID PARA CAMBIAR EL ESTADO
+router.patch("/:id", validateUUID, updateStateController);
 
 export default router;

@@ -1,23 +1,53 @@
 "use client";
 
-import { Pencil, Trash2 } from "lucide-react";
 import { useDetallePresupuesto } from "@/hooks/useDetallePresupuesto";
 import Loading from "@/components/ui/loading/Loading";
+import Spinner from "@/components/ui/loading/Spinner";
 import { BackButton } from "@/components/ui/BackButton";
+import {
+  Clock,
+  CheckCircle2,
+  XCircle,
+  FileText,
+  Send,
+  Loader2,
+} from "lucide-react";
 
 export default function PresupuestoDetalle({ params }) {
   // Si la ruta dinámica de Next.js pasa el id como params.id (ej: /presupuestos/[id])
   const { id } = params || {};
-  const { presupuesto, loading, error } = useDetallePresupuesto(id);
+  const { presupuesto, loading, error, actualizandoEstado, cambiarEstado } =
+    useDetallePresupuesto(id);
 
-  console.log("Presupuesto: ", presupuesto);
+  const ESTADOS_VALIDOS = [
+    "Borrador",
+    "Guardado",
+    "Enviado",
+    "Aceptado",
+    "Rechazado",
+  ];
+  // Función auxiliar para retornar el icono según el estado actual
+  const obtenerIconoEstado = (estado) => {
+    const props = { className: "w-3.5 h-3.5" };
+
+    switch (estado) {
+      case "Aceptado":
+      case "Aprobado":
+        return <CheckCircle2 {...props} />;
+      case "Rechazado":
+        return <XCircle {...props} />;
+      case "Enviado":
+        return <Send {...props} />;
+      case "Guardado":
+        return <Clock {...props} />;
+      case "Borrador":
+      default:
+        return <FileText {...props} />;
+    }
+  };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Loading />
-      </div>
-    );
+    return <Loading text={"Cargando detalle de presupuesto..."} />;
   }
 
   if (error) {
@@ -177,15 +207,31 @@ export default function PresupuestoDetalle({ params }) {
       </div>
 
       {/* Botones de acción inferior */}
-      <div className="flex gap-3 mt-2">
-        <button className="flex-1 py-3 bg-white border border-gray-200 rounded-2xl font-bold text-[#0B376D] flex items-center justify-center gap-2 shadow-sm hover:bg-gray-50 transition-colors">
-          <Pencil className="w-5 h-5 text-[#0B376D]" />
-          Editar
-        </button>
-        <button className="flex-1 py-3 bg-white border border-red-200 rounded-2xl font-bold text-red-600 flex items-center justify-center gap-2 shadow-sm hover:bg-red-50 transition-colors">
-          <Trash2 className="w-5 h-5 text-red-600" />
-          Eliminar
-        </button>
+      <div className="bg-white border border-gray-100 shadow-sm p-4 rounded-[20px] flex flex-col gap-2">
+        <h3 className="font-bold text-sm text-[#0B376D]">Actualizar estado</h3>
+
+        {/* Contenedor relativo para posicionar el spinner adentro */}
+        <div className="relative flex items-center">
+          <select
+            value={presupuesto.estado}
+            onChange={(e) => cambiarEstado(e.target.value)}
+            disabled={actualizandoEstado}
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 pr-10 text-xs bg-gray-50 text-[#0B376D] font-medium focus:outline-none focus:ring-2 focus:ring-[#0B376D]/20 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {ESTADOS_VALIDOS.map((est) => (
+              <option key={est} value={est}>
+                {est === "Guardado" ? "Guardado (Pendiente)" : est}
+              </option>
+            ))}
+          </select>
+
+          {/* Spinner posicionado absolutamente a la derecha del select */}
+          {actualizandoEstado && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-50/80 rounded-xl pointer-events-none">
+              <Spinner className="w-4 h-4" />
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
