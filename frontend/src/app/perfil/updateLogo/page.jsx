@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { getMeService } from "@/services/authService";
 import { EditarLogoForm } from "@/components/auth/EditLogoForm";
 import { BackButton } from "@/components/ui/BackButton";
+import { FadeIn } from "@/components/ui/FadeIn";
 export default function UpdateLogoPage() {
   const [user, setUser] = useState(null);
   const router = useRouter();
@@ -25,6 +26,7 @@ export default function UpdateLogoPage() {
   }
 
   return (
+    <FadeIn>
     <main className="min-h-screen bg-gray-50 p-4 pt-10">
       <div className="max-w-md mx-auto">
         {/* Usamos tu componente reutilizable */}
@@ -39,6 +41,7 @@ export default function UpdateLogoPage() {
         <EditarLogoForm user={user} />
       </div>
     </main>
+    </FadeIn>
   );
 
 }

@@ -36,7 +36,7 @@ function calcularDiasDeCreado(fechaString) {
   if (diferenciaDias > 1) return `Hace ${diferenciaDias} días`;
   return "";
 }
-
+/* USAR COMO REUTILIZABLE  */
 export default function ClienteConPresupuesto({
   presupuestos,
   loading,

@@ -58,8 +58,9 @@ export const ClientesRecientes = ({
           </div>
         ) : presupuestos.length > 0 ? (
           presupuestos.map((item) => (
-            <div
+            <Link
               key={item.id}
+              href={`/historial/${item.id}`}
               className="flex justify-between items-center bg-white border border-gray-100 shadow-sm p-3 rounded-[16px] transition-all hover:shadow-md"
             >
               {/* Lado izquierdo: Avatar y Datos del cliente */}
@@ -107,7 +108,7 @@ export const ClientesRecientes = ({
                   ${parseFloat(item.total || 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
                 </span>
               </div>
-            </div>
+            </Link>
           ))
         ) : (
           <div className="flex items-center justify-center h-full text-black/40 text-xs py-10">
