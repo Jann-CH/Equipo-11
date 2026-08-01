@@ -7,7 +7,7 @@ export const ObservacionesModal = ({ open, onClose, register }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-480px rounded-3xl bg-white p-5 shadow-xl">
+      <div className="w-full max-w-md rounded-3xl bg-white p-5 shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-semibold text-lg text-[#123B5D]">

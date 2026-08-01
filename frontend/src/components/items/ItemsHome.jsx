@@ -12,6 +12,7 @@ import {
 import { ItemsForm } from "@/components/items/ItemsForm";
 import Loading from "@/components/ui/loading/Loading";
 import { getItemsService } from "@/services/items.service";
+import { CircleAlert } from "lucide-react";
 
 export const ItemsPage = () => {
   const router = useRouter();
@@ -70,36 +71,36 @@ export const ItemsPage = () => {
           <ArrowLeftIcon className="w-6 h-6 text-[#123B5D]" />
         </button>
 
-        <h1 className="text-lg font-semibold text-[#123B5D] text-center">
+        <h1 className="text-2xl font-semibold text-black text-center">
           Mis productos y servicios
         </h1>
 
         <div className="w-6" />
       </div>
 
-      <div className="grid grid-cols-2 rounded-xl overflow-hidden border border-[#003B6F] mb-5">
-        <button
-          onClick={() => setTipoSeleccionado("producto")}
-          className={`py-3 text-sm font-medium transition ${
-            tipoSeleccionado === "producto"
-              ? "bg-[#003B6F] text-white"
-              : "bg-white text-[#003B6F]"
-          }`}
-        >
-          Productos
-        </button>
+      <div className="grid grid-cols-2 gap-1 mb-5">
+  <button
+    onClick={() => setTipoSeleccionado("producto")}
+    className={`py-3 text-sm font-medium transition rounded-xl border ${
+      tipoSeleccionado === "producto"
+        ? "bg-[#003B6F] text-white border-[#003B6F]"
+        : "bg-white text-[#003B6F] border-gray-300"
+    }`}
+  >
+    Productos
+  </button>
 
-        <button
-          onClick={() => setTipoSeleccionado("servicio")}
-          className={`py-3 text-sm font-medium transition ${
-            tipoSeleccionado === "servicio"
-              ? "bg-[#003B6F] text-white"
-              : "bg-white text-[#003B6F]"
-          }`}
-        >
-          Servicios
-        </button>
-      </div>
+  <button
+    onClick={() => setTipoSeleccionado("servicio")}
+    className={`py-3 text-sm font-medium transition rounded-xl border ${
+      tipoSeleccionado === "servicio"
+        ? "bg-[#003B6F] text-white border-[#003B6F]"
+        : "bg-white text-[#003B6F] border-gray-300"
+    }`}
+  >
+    Servicios
+  </button>
+</div>
 
       <div className="flex gap-3 mb-6">
         <div className="relative flex-1">
@@ -126,16 +127,31 @@ export const ItemsPage = () => {
         </h2>
 
         <button
-          onClick={() => {
-            setItemEditar(null);
-            setTipoFormulario(tipoSeleccionado);
-            setOpenForm(true);
-          }}
-          className="flex items-center gap-1 rounded-full border border-[#528A72] text-[#528A72] px-3 py-1.5 text-sm hover:bg-[#528A72] hover:text-white transition"
-        >
-          <PlusIcon className="w-4 h-4" />
-          Agregar
-        </button>
+  onClick={() => {
+    setItemEditar(null);
+    setTipoFormulario(tipoSeleccionado);
+    setOpenForm(true);
+  }}
+  className="
+    flex
+    items-center
+    gap-1
+    rounded-full
+    border
+    border-[#003B6F]
+    text-[#003B6F]
+    px-3
+    py-1.5
+    text-sm
+    font-semibold
+    hover:bg-[#003B6F]
+    hover:text-white
+    transition
+  "
+>
+  <PlusIcon className="w-5 h-5 stroke-[2.5]" />
+  Agregar
+</button>
       </div>
 
       <div className="space-y-3">
@@ -186,9 +202,17 @@ export const ItemsPage = () => {
           Inactivos
         </h2>
 
-        <div className="bg-[#EAF1F8] rounded-2xl p-4 text-sm text-[#123B5D]">
-          Los productos y servicios inactivos no estarán disponibles para nuevos presupuestos.
-        </div>
+        <div className="bg-[#EAF1F8] rounded-2xl p-4 text-sm text-[#123B5D] flex items-start gap-2">
+  <CircleAlert 
+    size={22}
+  strokeWidth={3}
+  className="text-[#123B5D] shrink-0 mt-1"
+  />
+
+  <p className="font-medium">
+    Los productos y servicios inactivos no estarán disponibles para nuevos presupuestos.
+  </p>
+</div>
       </div>
 
       <ItemsForm

@@ -32,7 +32,7 @@ export const PresupuestoPage = () => {
           <ArrowLeftIcon className="w-6 h-6 text-[#123B5D]" />
         </button>
 
-        <h1 className="text-2xl font-semibold text-[#123B5D]">
+        <h1 className="text-2xl font-semibold text-black">
           Nuevo presupuesto
         </h1>
 
