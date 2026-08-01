@@ -108,7 +108,7 @@ export const BuscarCliente = ({
             className="
               w-full
               h-10
-              rounded-lg
+              rounded-xl
               border
               border-gray-300
               pl-9

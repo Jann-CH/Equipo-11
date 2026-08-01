@@ -3,26 +3,20 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Eye, Calendar, ChevronDown } from "lucide-react";
-
 import { BuscarCliente } from "@/components/presupuesto/BuscarCliente";
 import { BuscarItem } from "@/components/presupuesto/BuscarItem";
 import { ItemCard } from "@/components/presupuesto/ItemCard";
 import { ObservacionesCard } from "@/components/presupuesto/ObservacionesCard";
 import { ObservacionesModal } from "@/components/presupuesto/ObservacionesModal";
 import { ClientesForm } from "@/components/clientes/ClientesForm";
+import { ItemsForm } from "@/components/items/ItemsForm";
 import Spinner from "@/components/ui/loading/Spinner";
-import {
-  createPresupuestoService,
-  downloadPresupuestoService,
-} from "@/services/presupuestos.service";
+import { createPresupuestoService, downloadPresupuestoService } from "@/services/presupuestos.service";
 import { PresupuestoCreadoModal } from "@/components/presupuesto/PresupuestoCreadoModal";
 
 export const PresupuestoForm = () => {
   const hoy = new Date().toISOString().split("T")[0];
-
-  const { register, handleSubmit, reset, watch } = useForm({
-    defaultValues: { fecha: hoy, observaciones: "" },
-  });
+  const { register, handleSubmit, reset, watch } = useForm({ defaultValues: { fecha: hoy, observaciones: "" } });
 
   const [cliente, setCliente] = useState(null);
   const [items, setItems] = useState([]);
@@ -30,6 +24,8 @@ export const PresupuestoForm = () => {
   const [validez, setValidez] = useState("30");
   const [mostrarValidez, setMostrarValidez] = useState(false);
   const [clienteKey, setClienteKey] = useState(0);
+  const [itemKey, setItemKey] = useState(0);
+  const [modalItem, setModalItem] = useState(false);
   const [modalObservaciones, setModalObservaciones] = useState(false);
   const [modalCliente, setModalCliente] = useState(false);
   const [modalExito, setModalExito] = useState(false);
@@ -37,7 +33,6 @@ export const PresupuestoForm = () => {
   const [presupuestoId, setPresupuestoId] = useState(null);
   const [pdfUrl, setPdfUrl] = useState("");
   const [telefonoCliente, setTelefonoCliente] = useState("");
-
   const [loadingAction, setLoadingAction] = useState(null);
 
   const fechaActual = watch("fecha");
@@ -46,35 +41,19 @@ export const PresupuestoForm = () => {
   const agregarItem = (item) => {
     setItems((prev) => {
       const existe = prev.find((i) => i.id === item.id);
-
-      if (existe) {
-        return prev.map((i) =>
-          i.id === item.id ? { ...i, cantidad: i.cantidad + 1 } : i,
-        );
-      }
-
+      if (existe) return prev.map((i) => (i.id === item.id ? { ...i, cantidad: i.cantidad + 1 } : i));
       return [...prev, { ...item, cantidad: 1 }];
     });
   };
 
   const cambiarCantidad = (id, cantidad) => {
     if (cantidad < 1) return;
-
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, cantidad: Number(cantidad) } : item,
-      ),
-    );
+    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, cantidad: Number(cantidad) } : item)));
   };
 
-  const eliminarItem = (id) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  };
+  const eliminarItem = (id) => setItems((prev) => prev.filter((item) => item.id !== id));
 
-  const total = items.reduce(
-    (acc, item) => acc + Number(item.precio) * Number(item.cantidad),
-    0,
-  );
+  const total = items.reduce((acc, item) => acc + Number(item.precio) * Number(item.cantidad), 0);
 
   const calcularVencimiento = (fecha, dias) => {
     const nueva = new Date(fecha);
@@ -90,26 +69,14 @@ export const PresupuestoForm = () => {
     setMostrarValidez(false);
     setModalObservaciones(false);
     setClienteKey((prev) => prev + 1);
+    setItemKey((prev) => prev + 1);
   };
 
   const prepararTelefonoWhatsApp = (telefono) => {
     let numero = telefono.replace(/\D/g, "");
-
-    // Si viene con 0 adelante
-    if (numero.startsWith("0")) {
-      numero = numero.substring(1);
-    }
-
-    // Si viene con 15 (formato viejo argentino)
-    if (numero.startsWith("15")) {
-      numero = numero.substring(2);
-    }
-
-    // Agregar Argentina
-    if (!numero.startsWith("549")) {
-      numero = "549" + numero;
-    }
-
+    if (numero.startsWith("0")) numero = numero.substring(1);
+    if (numero.startsWith("15")) numero = numero.substring(2);
+    if (!numero.startsWith("549")) numero = "549" + numero;
     return numero;
   };
 
@@ -119,7 +86,6 @@ export const PresupuestoForm = () => {
         setMensaje("Seleccioná un cliente");
         return;
       }
-
       if (items.length === 0) {
         setMensaje("Agregá al menos un servicio");
         return;
@@ -134,10 +100,7 @@ export const PresupuestoForm = () => {
         fecha_vencimiento: calcularVencimiento(data.fecha, validez),
         estado,
         observaciones: data.observaciones,
-        detalles: items.map((item) => ({
-          item_id: item.id,
-          cantidad: item.cantidad,
-        })),
+        detalles: items.map((item) => ({ item_id: item.id, cantidad: item.cantidad })),
       };
 
       const response = await createPresupuestoService(presupuesto);
@@ -145,14 +108,11 @@ export const PresupuestoForm = () => {
       setPresupuestoId(response.presupuesto.id);
       setPdfUrl(response.presupuesto.pdf_url);
       setTelefonoCliente(response.presupuesto.cliente_telefono);
-
       setTipoModal(estado === "Guardado" ? "presupuesto" : "borrador");
-
       setMensaje("");
       setModalExito(true);
     } catch (error) {
       console.error(error);
-
       setMensaje(error.response?.data?.message || "Error creando presupuesto");
     } finally {
       setLoadingAction(null);
@@ -162,20 +122,13 @@ export const PresupuestoForm = () => {
   const descargarPDF = async () => {
     try {
       const blob = await downloadPresupuestoService(presupuestoId);
-
       const url = window.URL.createObjectURL(blob);
-
       const a = document.createElement("a");
-
       a.href = url;
       a.download = `Presupuesto-${presupuestoId}.pdf`;
-
       document.body.appendChild(a);
-
       a.click();
-
       a.remove();
-
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error descargando PDF:", error);
@@ -185,17 +138,10 @@ export const PresupuestoForm = () => {
   const enviarWhatsApp = async () => {
     try {
       const blob = await downloadPresupuestoService(presupuestoId);
-
-      const archivo = new File([blob], `Presupuesto-${presupuestoId}.pdf`, {
-        type: "application/pdf",
-      });
+      const archivo = new File([blob], `Presupuesto-${presupuestoId}.pdf`, { type: "application/pdf" });
 
       if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
-        await navigator.share({
-          files: [archivo],
-          title: "Presupuesto",
-          text: "Te envío el presupuesto solicitado.",
-        });
+        await navigator.share({ files: [archivo], title: "Presupuesto", text: "Te envío el presupuesto solicitado." });
       } else {
         alert("Tu dispositivo no permite compartir archivos directamente.");
       }
@@ -206,45 +152,38 @@ export const PresupuestoForm = () => {
 
   return (
     <>
-      <form
-        onSubmit={handleSubmit((data) => enviarPresupuesto(data, "Guardado"))}
-        className="space-y-4"
-      >
+      <form onSubmit={handleSubmit((data) => enviarPresupuesto(data, "Guardado"))} className="space-y-4">
         <h2 className="text-lg font-bold text-[#123B5D]">Datos básicos</h2>
 
-        <BuscarCliente
-          key={clienteKey}
-          clienteSeleccionado={cliente}
-          onSelect={setCliente}
-          onNuevoCliente={() => setModalCliente(true)}
-        />
+        <BuscarCliente key={clienteKey} clienteSeleccionado={cliente} onSelect={setCliente} onNuevoCliente={() => setModalCliente(true)} />
 
-        <BuscarItem onAgregarItem={agregarItem} />
+        <div className="space-y-3">
+          <BuscarItem key={itemKey} onAgregarItem={agregarItem} />
+
+          <div className="flex items-center justify-between pt-2">
+            <h2 className="text-lg font-bold text-[#123B5D]">Items del presupuesto</h2>
+            <button
+              type="button"
+              onClick={() => setModalItem(true)}
+              className="flex items-center gap-2 rounded-xl border border-[#D0D9D5] bg-white px-3 py-2 text-sm font-medium text-[#123B5D] hover:bg-gray-50 transition-colors"
+            >
+              <span className="text-base leading-none">+</span>
+              Agregar ítem
+            </button>
+          </div>
+        </div>
 
         <div className="space-y-3">
           {items.map((item) => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              onDelete={eliminarItem}
-              onCantidadChange={cambiarCantidad}
-            />
+            <ItemCard key={item.id} item={item} onDelete={eliminarItem} onCantidadChange={cambiarCantidad} />
           ))}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block mb-2 text-sm font-medium text-[#123B5D]">
-              Fecha
-            </label>
-
+            <label className="block mb-2 text-sm font-medium text-[#123B5D]">Fecha</label>
             <div className="relative">
-              <Calendar
-                size={18}
-                strokeWidth={2.2}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#123B5D]"
-              />
-
+              <Calendar size={18} strokeWidth={2.2} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#123B5D]" />
               <input
                 type="date"
                 min={hoy}
@@ -256,10 +195,7 @@ export const PresupuestoForm = () => {
           </div>
 
           <div className="relative">
-            <label className="block mb-2 text-sm font-medium text-[#123B5D]">
-              Validez del presupuesto
-            </label>
-
+            <label className="block mb-2 text-sm font-medium text-[#123B5D]">Validez del presupuesto</label>
             <button
               type="button"
               onClick={() => setMostrarValidez(!mostrarValidez)}
@@ -267,12 +203,8 @@ export const PresupuestoForm = () => {
             >
               <div className="flex items-center gap-2">
                 <Calendar size={18} className="text-[#123B5D]" />
-
-                <span className="text-sm font-medium text-[#123B5D]">
-                  {validez} días
-                </span>
+                <span className="text-sm font-medium text-[#123B5D]">{validez} días</span>
               </div>
-
               <ChevronDown size={18} className="text-[#123B5D]" />
             </button>
 
@@ -296,23 +228,14 @@ export const PresupuestoForm = () => {
           </div>
         </div>
 
-        <ObservacionesCard
-          observaciones={observacionesActual}
-          onOpen={() => setModalObservaciones(true)}
-        />
+        <ObservacionesCard observaciones={observacionesActual} onOpen={() => setModalObservaciones(true)} />
 
         <div>
           <div className="border-t border-[#D0D9D5]" />
-
           <div className="flex justify-between items-center px-1 mt-2">
             <span className="text-lg font-semibold text-[#123B5D]">Total:</span>
-
             <span className="text-2xl font-semibold text-[#123B5D]">
-              $
-              {total.toLocaleString("es-AR", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              ${total.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
         </div>
@@ -321,9 +244,7 @@ export const PresupuestoForm = () => {
           <button
             type="button"
             disabled={loadingAction !== null}
-            onClick={handleSubmit((data) =>
-              enviarPresupuesto(data, "Borrador"),
-            )}
+            onClick={handleSubmit((data) => enviarPresupuesto(data, "Borrador"))}
             className="flex-1 h-11 rounded-xl border border-[#123B5D] text-[#123B5D] flex items-center justify-center gap-2 disabled:opacity-70 transition-all"
           >
             {loadingAction === "Borrador" ? (
@@ -342,9 +263,7 @@ export const PresupuestoForm = () => {
           <button
             type="button"
             disabled={loadingAction !== null}
-            onClick={handleSubmit((data) =>
-              enviarPresupuesto(data, "Guardado"),
-            )}
+            onClick={handleSubmit((data) => enviarPresupuesto(data, "Guardado"))}
             className="flex-1 h-11 rounded-xl bg-[#528A72] hover:bg-[#43725d] text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-70 transition-all"
           >
             {loadingAction === "Guardado" ? (
@@ -359,22 +278,27 @@ export const PresupuestoForm = () => {
         </div>
       </form>
 
-      <ObservacionesModal
-        open={modalObservaciones}
-        onClose={() => setModalObservaciones(false)}
-        register={register}
-      />
+      <ObservacionesModal open={modalObservaciones} onClose={() => setModalObservaciones(false)} register={register} />
 
       <ClientesForm
         isOpen={modalCliente}
         onClose={() => setModalCliente(false)}
         onSuccess={(response) => {
           const nuevo = response.cliente || response;
-
           setCliente(nuevo);
           setModalCliente(false);
-
           setClienteKey((prev) => prev + 1);
+        }}
+      />
+
+      <ItemsForm
+        isOpen={modalItem}
+        onClose={() => setModalItem(false)}
+        onSuccess={(response) => {
+          const nuevo = response.item || response;
+          setModalItem(false);
+          setItemKey((prev) => prev + 1);
+          agregarItem(nuevo);
         }}
       />
 
@@ -388,20 +312,12 @@ export const PresupuestoForm = () => {
           setPdfUrl("");
         }}
         onPrimary={async () => {
-          if (tipoModal === "presupuesto" && presupuestoId) {
-            await descargarPDF();
-          }
+          if (tipoModal === "presupuesto" && presupuestoId) await descargarPDF();
         }}
         onSecondary={() => {
           if (tipoModal === "presupuesto" && telefonoCliente && pdfUrl) {
-            const mensaje = encodeURIComponent(
-              `Hola, te envío el presupuesto solicitado:\n\n${pdfUrl}`,
-            );
-
-            window.open(
-              `https://wa.me/${telefonoCliente}?text=${mensaje}`,
-              "_blank",
-            );
+            const mensaje = encodeURIComponent(`Hola, te envío el presupuesto solicitado:\n\n${pdfUrl}`);
+            window.open(`https://wa.me/${telefonoCliente}?text=${mensaje}`, "_blank");
           }
         }}
       />
