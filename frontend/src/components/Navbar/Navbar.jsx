@@ -26,7 +26,9 @@ export const Navbar = () => {
     if (!pathname) return false;
 
     // Si la ruta es /home, validamos que coincida exactamente
-    if (path === "/home") return pathname === "/home" || pathname === "/";
+    if (pathname === "/home" || pathname === "/login" || pathname === "/") {
+    return null;
+  }
 
     return pathname === path || pathname.startsWith(path + "/");
   };
@@ -46,8 +48,8 @@ export const Navbar = () => {
     <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 py-2 px-6 z-50">
       <div className="flex justify-between items-center max-w-md mx-auto">
         {/* --- HOME (Cuadro azul al seleccionar) --- */}
-        <Link href="/home" className={getBoxLinkStyles("/")}>
-          {isActive("/home") ? (
+        <Link href="/dashboard" className={getBoxLinkStyles("/dashboard")}>
+          {isActive("/dashboard") ? (
             <HomeIconSolid className="h-7 w-7" />
           ) : (
             <HomeIconOutline className="h-7 w-7" />

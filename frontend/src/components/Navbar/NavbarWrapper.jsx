@@ -8,6 +8,11 @@ import { PROTECTED_ROUTES } from "@/lib/routes";
 export default function NavbarWrapper() {
   const pathname = usePathname();
 
+  // 1. Si estamos exactamente en la raíz ("/") o en el login, nunca mostrar el Navbar
+  if (pathname === "/" || pathname === "/login" || pathname === "/home") {
+    return null;
+  }
+
   // Comprobamos si la ruta actual es una de las protegidas
   const shouldShowNavbar = PROTECTED_ROUTES.some((route) => 
     pathname.startsWith(route)

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import React, { useState } from "react";
 import { Calendar } from "lucide-react";
 import Spinner from "@/components/ui/loading/Spinner";
 
@@ -44,10 +45,27 @@ export default function ClienteConPresupuesto({
   paginaActual,
   totalPaginas,
   onCambiarPagina,
+  esVistaCompleta = false,
+  onVerMasClick,
 }) {
-
   return (
     <div className="flex flex-col gap-2 flex-1 my-1">
+      {/* Cabecera */}
+      <div className="flex justify-between items-center mb-4">
+        <span className="text-[#0B376D] text-lg font-bold">
+          {esVistaCompleta ? "Todos los Presupuestos" : "Recientes"}
+        </span>
+
+        {/* Si no es vista completa, mostramos el botón que dispara la función del padre */}
+        {!esVistaCompleta && onVerMasClick && (
+          <button
+            onClick={onVerMasClick}
+            className="text-[#2E7D5B] text-[13px] font-bold cursor-pointer hover:underline bg-transparent border-none p-0"
+          >
+            Ver más
+          </button>
+        )}
+      </div>
       {/* Lista de presupuestos */}
       <div className="flex flex-col gap-2 overflow-y-auto flex-1">
         {loading ? (

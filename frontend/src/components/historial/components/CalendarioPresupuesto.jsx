@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import Spinner from "@/components/ui/loading/Spinner";
-import ClienteConPresupuesto from "./ClientesConPresupuesto";
+import ClienteConPresupuesto from "../../ui/ClientesConPresupuesto";
 
 export default function CalendarioPresupuesto({
   presupuestos,

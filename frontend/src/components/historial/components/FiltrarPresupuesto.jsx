@@ -72,11 +72,11 @@ export default function FiltrarPresupuesto({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex justify-end">
+    <div className="fixed inset-0 bg-black/50 z-[100] flex justify-end">
       {/* Panel lateral */}
       <div className="w-full max-w-md bg-white h-full flex flex-col shadow-2xl">
         {/* Cabecera */}
-        <div className="relative flex justify-between items-center p-4 border-b border-gray-100 flex-shrink-0 bg-white">
+        <div className="relative flex justify-between items-center p-2 border-b border-gray-100 flex-shrink-0 bg-white">
           {/* Botón Cerrar (Izquierda) */}
           <button
             onClick={onClose}
@@ -100,13 +100,13 @@ export default function FiltrarPresupuesto({
         </div>
 
         {/* Contenido scrolleable */}
-        <div className="overflow-y-auto flex-1 p-4 space-y-6">
+        <div className="overflow-y-auto flex-1 p-3 space-y-5">
           {/* ESTADOS */}
           <div>
             <h3 className="text-sm font-semibold text-[#013364] mb-3">
               Estado
             </h3>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col">
               {[
                 { label: "Pendientes", val: "Pendiente" },
                 { label: "Aprobados", val: "Aprobado" },
@@ -159,7 +159,7 @@ export default function FiltrarPresupuesto({
             <h3 className="text-sm font-semibold text-[#013364] mb-3">
               Fecha
             </h3>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col">
               {[
                 { id: "hoy", label: "Hoy" },
                 { id: "semana", label: "Última semana" },
@@ -259,7 +259,7 @@ export default function FiltrarPresupuesto({
           </div>
 
           {/* BOTÓN APLICAR */}
-          <div className="pt-6 pb-6">
+          <div className="pt-4 pb-6">
             <button
               onClick={handleAplicar}
               className="w-full py-3.5 bg-emerald-700 text-white rounded-2xl font-bold text-sm shadow-md hover:bg-emerald-800 transition-all"

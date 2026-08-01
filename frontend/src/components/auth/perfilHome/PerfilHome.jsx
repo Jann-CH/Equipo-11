@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getMeService, logoutService } from "@/services/authService";
 import { MenuItem } from "./MenuItem";
@@ -55,7 +56,7 @@ export const PerfilHome = () => {
 
   return (
     <FadeIn>
-      <div className="min-h-screen bg-gray-50 pb-24 p-4 max-w-md mx-auto">
+     
         {/* Tarjeta de usuario con datos reales */}
         <section className="mb-6 rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
           <div className="flex items-start gap-4">
@@ -76,18 +77,29 @@ export const PerfilHome = () => {
           </div>
 
           <div className="mt-4 flex items-center justify-between border-t pt-4">
-            <div className="flex items-center gap-3">
-              <BuildingOfficeIcon className="h-8 w-8 text-teal-800 bg-teal-100 p-1.5 rounded-lg" />
-              <div>
-                <p className="text-sm font-bold text-[#0B376D]">
-                  {user.nombreEmprendimiento || "Sin nombre"}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {user.rubro || "Sin rubro"}
-                </p>
+            <Link
+              href={"/perfil/rubroCargo"}
+              className="flex items-center gap-4 w-full py-1" // <--- Añadimos w-full y subimos el gap a 4
+            >
+              <div className="shrink-0 h-6 w-6">
+                <BuildingOfficeIcon className="h-8 w-8 text-teal-800 bg-teal-100 p-1.5 rounded-lg" />
               </div>
-            </div>
-            <ChevronRightIcon className="h-5 w-5 text-[#0B376D]" />
+
+              <div className="flex grow flex-col text-left">
+                <span className="text-sm font-semibold text-[#0B376D]">
+                  {user.nombre_emprendimiento || "Sin nombre"}
+                </span>
+                {user.rubro && (
+                  <span className="text-xs text-gray-500">
+                    {user.rubro || "Sin rubro"}
+                  </span>
+                )}
+              </div>
+
+              <div className="shrink-0">
+                <ChevronRightIcon className="h-5 w-5 text-[#0B376D]" />
+              </div>
+            </Link>
           </div>
         </section>
 
@@ -187,7 +199,7 @@ export const PerfilHome = () => {
         >
           {loggingOut ? "Cerrando sesión..." : "Cerrar sesión"}
         </button>
-      </div>
+      
     </FadeIn>
   );
 };

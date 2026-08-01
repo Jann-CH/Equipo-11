@@ -1,23 +1,30 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
+import Loading from "@/components/ui/loading/Loading";
+import Spinner from "@/components/ui/loading/Spinner";
 import { DateAndImg } from "./components/DateAndImg";
 import { TotalActivo } from "./components/TotalActivo";
 import { ActividadSemanal } from "./components/ActividadSemanal";
-import { ClientesRecientes } from "@/components/ui/ClientesRecientes";
+import ClienteConPresupuesto from "@/components/ui/ClientesConPresupuesto";
+import VerMasClientes from "@/components/ui/VerMasClientes";
 import { useDashboard } from "./hooks/useDashboard";
-import { useFiltroPresupuestos } from "./hooks/usePresupuestosLista";
-import Loading from "@/components/ui/loading/Loading";
+import { useFiltroPresupuestos } from "@/components/historial/hooks/useFiltroPresupuesto";
 
-export default function Home() {
+
+export default function Dashboard() {
   const { data, loading, error, periodo, cambiarPeriodo } = useDashboard();
 
   const {
-    presupuestos: listaData,
-    paginaActual: pagina,
+    presupuestos,
     totalPaginas,
+    totalRegistros,
+    paginaActual,
+    loading: loadingPresupuestos,
+    error: errorPresupuestos,
     cambiarPagina,
-    loading: listaLoading,
   } = useFiltroPresupuestos(5);
+
+  const [verMas, setVerMas] = useState(false);
 
   if (loading && !data) {
     return <Loading text="Cargando inicio..." />;
@@ -33,6 +40,21 @@ export default function Home() {
 
   const estadisticas = data?.estadisticas || {};
   const actividadSemanal = data?.actividadSemanal || [];
+
+  // 3. Si "verMas" está activo, renderizamos directamente el componente VerMasClientes
+  if (verMas) {
+    return (
+      <VerMasClientes
+        presupuestos={presupuestos}
+        loading={loadingPresupuestos}
+        paginaActual={paginaActual}
+        totalRegistros={totalRegistros}
+        totalPaginas={totalPaginas}
+        onCambiarPagina={cambiarPagina}
+        onVolver={() => setVerMas(false)}
+      />
+    );
+  }
 
   return (
     <>
@@ -58,13 +80,18 @@ export default function Home() {
             cambiarPeriodo={cambiarPeriodo}
           />
 
-          <ClientesRecientes
-            presupuestos={listaData || []}
-            paginaActual={pagina}
+          {loadingPresupuestos && <Spinner />}
+          {errorPresupuestos && <p className="text-red-500 text-center mt-4">{errorPresupuestos}</p>}
+
+          <ClienteConPresupuesto
+            presupuestos={presupuestos}
+            loading={loadingPresupuestos}
+            totalRegistros={totalRegistros}
+            paginaActual={paginaActual}
             totalPaginas={totalPaginas}
-            cambiarPagina={cambiarPagina}
-            loading={listaLoading}
+            onCambiarPagina={cambiarPagina}
             esVistaCompleta={false}
+            onVerMasClick={() => setVerMas(true)}
           />
    
       </div>

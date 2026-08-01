@@ -306,8 +306,9 @@ export const findPresupuestosConFiltrosRepository = async (usuarioId, filtros, l
         values.push(filtros.montoMaximo);
     }
 
-    // NUEVO: Ordenamiento dinámico (por defecto más reciente)
-    let ordenSQL = "ORDER BY p.created_at DESC";
+    // 1. Definimos las opciones de ordenamiento de forma limpia
+    let ordenSQL = "ORDER BY p.created_at DESC"; // Por defecto (recientes)
+    
     if (filtros.orden === "antiguo") {
         ordenSQL = "ORDER BY p.created_at ASC";
     } else if (filtros.orden === "monto_alto") {
@@ -324,7 +325,7 @@ export const findPresupuestosConFiltrosRepository = async (usuarioId, filtros, l
         FROM presupuestos p
         JOIN clientes c ON p.cliente_id = c.id
         WHERE ${conditions.join(" AND ")}
-        ORDER BY p.created_at DESC
+        ${ordenSQL}
         LIMIT $${values.length + 1}
         OFFSET $${values.length + 2};
     `;

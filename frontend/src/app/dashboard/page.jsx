@@ -1,14 +1,13 @@
-import Historial from "@/components/historial/Historial";
+import Dashboard from "@/components/dashboard/Dashboard";
 
-
-export default function PresupuestoHistorial() {
+export default function Page() {
   return (
 
       <main className="min-h-screen bg-gray-50 pb-24">
         <div className="max-w-md mx-auto">
-          <Historial />
+          <Dashboard />
         </div>
       </main>
-    
+ 
   );
 }

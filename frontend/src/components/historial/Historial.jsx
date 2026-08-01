@@ -4,13 +4,15 @@ import { useState } from "react";
 import ButtonListadoCalendario from "./components/ButtonListadoCalendario";
 import FiltrosPresupuestos from "./components/FiltrosPresupuestos";
 import CalendarioPresupuestos from "./components/CalendarioPresupuesto";
-import ClientesConPresupuesto from "./components/ClientesConPresupuesto";
+import ClientesConPresupuesto from "../ui/ClientesConPresupuesto";
+import VerMasClientes from "@/components/ui/VerMasClientes";
 import Spinner from "@/components/ui/loading/Spinner";
 import { useFiltroPresupuestos } from "./hooks/useFiltroPresupuesto";
 
 export default function Historial() {
   // Estado para controlar la vista activa: "listado" o "calendario"
   const [vistaActiva, setVistaActiva] = useState("listado");
+  const [verMas, setVerMas] = useState(false);
 
   const {
     presupuestos,
@@ -29,6 +31,20 @@ export default function Historial() {
     setVistaActiva(nuevaVista);
     limpiarFiltros(); // Opcional: limpia los filtros al cambiar de pestaña
   };
+
+  if (verMas) {
+    return (
+      <VerMasClientes
+        presupuestos={presupuestos}
+        loading={loading}
+        paginaActual={paginaActual}
+        totalRegistros={totalRegistros}
+        totalPaginas={totalPaginas}
+        onCambiarPagina={cambiarPagina}
+        onVolver={() => setVerMas(false)}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 p-4 max-w-md mx-auto">
@@ -60,6 +76,8 @@ export default function Historial() {
               paginaActual={paginaActual}
               totalPaginas={totalPaginas}
               onCambiarPagina={cambiarPagina}
+              esVistaCompleta={false}
+              onVerMasClick={() => setVerMas(true)}
             />
           )}
         </>

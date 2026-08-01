@@ -5,6 +5,7 @@ import {
   updateUserDateService,
   updateUserCompanyService,
   updateUserLogoService,
+  updateUserRubroCargoService,
 } from "../services/auth.service.js";
 
 /**
@@ -87,6 +88,21 @@ export const updateUserDateController = async (req, res, next) => {
     const userId = req.usuario.id;
     const dato = { ...req.body, userId };
     const user = await updateUserDateService(dato);
+    res.status(200).json({
+      success: true,
+      message: "Datos actualizados correctamente",
+      user
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export const updateUserRubroCargoController = async (req, res, next) => {
+  try {
+    const userId = req.auth.id;
+    const dato = { ...req.body, userId };
+    const user = await updateUserRubroCargoService(dato);
     res.status(200).json({
       success: true,
       message: "Datos actualizados correctamente",

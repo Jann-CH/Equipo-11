@@ -206,6 +206,35 @@ export const createUserRepository = async (dato) => {
     return result.rows[0];
 };
 
+export const updateUserRubroCargoRepository = async (dato) => {
+    const { 
+        userId, 
+        nombre_emprendimiento,
+        cargo 
+    } = dato;
+
+    // Actualiza todos los campos recibidos en la tabla usuarios
+    const query = `
+        UPDATE usuarios
+        SET 
+            nombre_emprendimiento = $1,
+            cargo = $2,
+            updated_at = NOW()
+        WHERE id = $3 AND deleted_at IS NULL
+        RETURNING id, nombre_emprendimiento, cargo
+    `;
+
+    // Ejecución de la consulta pasando los valores en el orden correcto
+    const result = await pool.query(query, [
+        nombre_emprendimiento,
+        cargo,
+        userId
+    ]);
+
+    // Retorna el resultado de la actualización
+    return result.rows[0];
+}
+
 export const updateUserDateRepository = async (dato) => {
     const { 
         userId, 
@@ -246,6 +275,7 @@ export const updateUserDateRepository = async (dato) => {
     
 export const updateUserCompanyRepository = async ({
     userId,
+    nombre_emprendimiento,
     razon_social,
     cuil_cuit,
     direccion,
@@ -257,14 +287,16 @@ export const updateUserCompanyRepository = async ({
     const query = `
         UPDATE usuarios
         SET 
-            razon_social = $1,
-            cuil_cuit = $2,
-            direccion = $3,
-            rubro = $4,
-            sitio_web = $5,
+            nombre_emprendimiento = $1,
+            razon_social = $2,
+            cuil_cuit = $3,
+            direccion = $4,
+            rubro = $5,
+            sitio_web = $6,
             updated_at = NOW()
-        WHERE id = $6 AND deleted_at IS NULL
+        WHERE id = $7 AND deleted_at IS NULL
         RETURNING id, 
+            nombre_emprendimiento,
             razon_social, 
             cuil_cuit, 
             direccion, 
@@ -274,6 +306,7 @@ export const updateUserCompanyRepository = async ({
 
     // Ejecución de la consulta pasando los valores en el orden correcto
     const result = await pool.query(query, [
+        nombre_emprendimiento,
         razon_social,
         cuil_cuit,
         direccion,

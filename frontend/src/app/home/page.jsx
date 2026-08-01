@@ -1,14 +1,11 @@
-import Home from "@/components/home/Home";
-import { FadeIn } from "@/components/ui/FadeIn";
+
+import LandingPage from "@/components/landingPage/LandingPage";
+
+export const metadata = {
+  title: "Valora — Gestioná tus presupuestos de forma simple",
+  description: "Plataforma de gestión de presupuestos para emprendedores",
+};
 
 export default function Page() {
-  return (
-    <FadeIn>
-      <main className="min-h-screen bg-gray-50 pb-24">
-        <div className="max-w-md mx-auto">
-          <Home />
-        </div>
-      </main>
-    </FadeIn>
-  );
+  return <LandingPage />;
 }

@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import NavbarWrapper from "@/components/Navbar/NavbarWrapper";
+import { FadeIn } from "@/components/ui/FadeIn";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,10 +35,12 @@ export default function RootLayout({ children }) {
     >
       <body className="min-h-full flex flex-col">
         {/* pb-24 asegura que el contenido no quede detrás del nav en las rutas protegidas */}
-        <main className="flex-grow pb-24">
-          {children}
+        <main className="flex-grow ">
+          <FadeIn>
+            {children}
+          </FadeIn>
         </main>
-        
+
         {/* El wrapper decidirá internamente si mostrarse o no */}
         <NavbarWrapper />
       </body>

@@ -47,11 +47,16 @@ export const logoutService = async () => {
 export const getMeService = async () => {
   const { data } = await api.get('/auth/me');
   return data;
-};                
+};
 
 export const updateUserDataService = async (userData) => {
   const { data } = await api.put('/auth/update', userData);
   return data; 
+}
+
+export const updateUserRubroCargoService = async (rubroCargoData) => {
+  const { data } = await api.put('/auth/updateRubroCargo', rubroCargoData);
+  return data;
 }
 
 export const updateUserCompanyService = async (companyData) => {

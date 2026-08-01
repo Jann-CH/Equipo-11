@@ -7,9 +7,13 @@ import { Input } from "@/components/ui/Input";
 import { AvatarEmpresa } from "@/components/ui/AvatarEmpresa";
 import { BackButton } from "../ui/BackButton";
 import Loading from "../ui/loading/Loading";
-import { getMeService, updateUserCompanyService } from "@/services/authService";
+import Spinner from "../ui/loading/Spinner";
+import {
+  getMeService,
+  updateUserRubroCargoService,
+} from "@/services/authService";
 
-export const MyCompanyForm = () => {
+export const MyDateRubroYCargoForm = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -27,8 +31,8 @@ export const MyCompanyForm = () => {
     getMeService()
       .then((res) => {
         setUser(res.user);
-        const { nombre_emprendimiento, razon_social, cuil_cuit, direccion, telefono, rubro, sitio_web } = res.user;
-        reset({ nombre_emprendimiento, razon_social, cuil_cuit, direccion, telefono, rubro, sitio_web});
+        const { cargo, rubro } = res.user;
+        reset({ cargo, rubro });
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -38,10 +42,10 @@ export const MyCompanyForm = () => {
     try {
       const dataToSend = {
         ...data,
-        userId: user.id 
+        userId: user.id,
       };
-      await updateUserCompanyService(dataToSend);
-      router.push("/perfil/empresa");
+      await updateUserRubroCargoService(dataToSend);
+      router.push("/perfil/datos");
     } catch (error) {
       setError("root", {
         type: "manual",
@@ -52,9 +56,8 @@ export const MyCompanyForm = () => {
     }
   };
 
-  if (loading) return <Loading text="Cargando datos de la empresa..." />;
+  if (loading) return <Loading text="Cargando datos rubro y cargo..." />;
 
-  
   return (
     <>
       {isSubmitting && (
@@ -64,7 +67,7 @@ export const MyCompanyForm = () => {
       <div className="flex items-center mb-6">
         <BackButton />
         <h1 className="flex-1 text-center text-2xl font-bold text-black mr-8">
-          Mi Empresa
+          Rubro y Cargo
         </h1>
       </div>
 
@@ -80,54 +83,16 @@ export const MyCompanyForm = () => {
       {/* Formulario */}
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <Input
-          label="Nombre del Emprendimiento"
-          placeholder="Mi Empresa S.A."
-          error={errors.nombre_emprendimiento?.message}
-          {...register("nombre_emprendimiento")}
-        />
-        <Input
-          label="Razon Social"
-          placeholder="Servicios Arg"
-          error={errors.razon_social?.message}
-          {...register("razon_social")}
-        />
-
-        <Input
-          label="CUIL / CUIT"
-          placeholder="30-71234567-8"
-          error={errors.cuil_cuit?.message}
-          {...register("cuil_cuit")}
-        />
-
-        <Input
-          label="Dirección"
-          type="direccion"
-          placeholder="Calle Falsa 1234, CABA, Buenos Aires"
-          error={errors.direccion?.message}
-          {...register("direccion")}
-        />
-
-        <Input
-          label="Teléfono"
-          placeholder="+54 9 11 50214093"
-          error={errors.telefono?.message}
-          {...register("telefono")}
-        />
-
-        <Input
           label="Rubro"
-          placeholder="Servicios"
           error={errors.rubro?.message}
-          {...register("rubro")}
+          {...register("rubro", { required: "El rubro es obligatorio" })}
         />
 
         <Input
-          label="Sitio Web"
-          placeholder="www.serviciosarg.com.ar"
-          error={errors.sitio_web?.message}
-          {...register("sitio_web")}
+          label="Cargo"
+          error={errors.cargo?.message}
+          {...register("cargo", { required: "El cargo es obligatorio" })}
         />
-
 
         {errors.root && (
           <p className="text-center text-sm text-red-500">
@@ -138,8 +103,16 @@ export const MyCompanyForm = () => {
         <button
           type="submit"
           disabled={isSubmitting}
-className="w-full h-12 rounded-xl bg-[#5B9B82] text-white font-medium hover:bg-[#4E8C74] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-[0.99]"        >
-          {isSubmitting ? "Guardando..." : "Guardar cambios"}
+          className="w-full h-12 rounded-xl bg-[#5B9B82] text-white font-medium hover:bg-[#4E8C74] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-[0.99]"
+        >
+          {isSubmitting ? (
+            <>
+              <Spinner />
+              <span>Guardando...</span>
+            </>
+          ) : (
+            "Guardar cambios"
+          )}
         </button>
       </form>
     </>

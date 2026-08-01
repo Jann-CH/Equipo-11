@@ -8,7 +8,8 @@ import {
     getUserByIdController,
     updateUserDateController,
     updateUserCompanyController,
-    updateUserLogoController
+    updateUserLogoController,
+    updateUserRubroCargoController,
 } from "../controllers/auth.controller.js";
 import { 
     registerValidation, 
@@ -35,6 +36,7 @@ router.get("/me",        authMiddleware, getUserByIdController);  // Solo permit
 
 //Rutas protegidas para actualizar datos del usuario
 router.put("/update", authMiddleware, updateUserDateController);
+router.put("/updateRubroCargo", authMiddleware, updateUserRubroCargoController);
 router.put("/updateCompany", authMiddleware, updateUserCompanyController);
 router.patch("/updateLogo", authMiddleware, upload.single("logo"), updateUserLogoController);
 export default router; // Exporta el router para usarlo en tu servidor principal

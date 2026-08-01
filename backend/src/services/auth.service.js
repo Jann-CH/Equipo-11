@@ -10,7 +10,8 @@ import {
     createUserRepository,
     updateUserDateRepository,
     updateUserCompanyRepository,
-    updateUserLogoRepository
+    updateUserLogoRepository,
+    updateUserRubroCargoRepository,
 } from "../repositories/usuario.repository.js";
 // Importamos el servicio encargado de subir los archivos (logos) a la nube o servidor
 import {
@@ -18,9 +19,9 @@ import {
     deleteFileService,
 } from "./files.service.js";
 
-import { 
-    validateRegisterData 
-} from "../validators/user.validator.js"; 
+import {
+    validateRegisterData
+} from "../validators/user.validator.js";
 
 import { AppError } from "../utils/AppError.util.js";
 
@@ -28,18 +29,18 @@ import { AppError } from "../utils/AppError.util.js";
  * Servicio encargado del registro de un nuevo usuario/emprendimiento.
  * Recibe un objeto desestructurado con las propiedades: email, password, nombreEmprendimiento y file.
  * nombre,apellido,email,password, nombreEmprendimiento,*/
-    
+
 export const registerService = async (datos) => {
 
     // Validamos los datos de registro usando la función del validador
     validateRegisterData(datos);
 
-    const { 
-        nombre, 
-        apellido, 
-        email, 
-        password, 
-        nombreEmprendimiento 
+    const {
+        nombre,
+        apellido,
+        email,
+        password,
+        nombreEmprendimiento
     } = datos;
     // Busca en la base de datos si ya existe un usuario    registrado con el email proporcionado
     const existingUser =
@@ -133,7 +134,7 @@ export const loginService = async ({
 
 
 export const getUserByIdService = async (userId) => {
-    
+
     const user = await findUserByIdRepository(userId);
 
     if (!user) {
@@ -145,7 +146,7 @@ export const getUserByIdService = async (userId) => {
         nombre: user.nombre,
         apellido: user.apellido,
         email: user.email,
-        nombreEmprendimiento: user.nombre_emprendimiento,
+        nombre_emprendimiento: user.nombre_emprendimiento,
         telefono: user.telefono,
         cargo: user.cargo,
         logo_url: user.logo_url,
@@ -158,8 +159,8 @@ export const getUserByIdService = async (userId) => {
         created_at: user.created_at,
         updated_at: user.updated_at
     };
-};          
-    
+};
+
 /** Actualizar datos del Usuario 
  *    userId,
     nombre,
@@ -171,7 +172,7 @@ export const updateUserDateService = async (dato) => {
     // 1. Obtener datos actuales para saber si ya tiene un logo
     const user = await findUserByIdRepository(dato.userId);
 
-    if(!user) throw new AppError("Usuario no existe", 404);
+    if (!user) throw new AppError("Usuario no existe", 404);
 
     return await updateUserDateRepository(dato)
 }
@@ -185,6 +186,15 @@ export const updateUserDateService = async (dato) => {
     rubro,
     sitio_web,
  */
+
+export const updateUserRubroCargoService = async (dato) => {
+
+    const user = await findUserByIdRepository(dato.userId);
+
+    if (!user) throw new AppError("Usuario no existe", 404);
+
+    return await updateUserRubroCargoRepository(dato)
+}
 
 export const updateUserCompanyService = async (dato) => {
 
