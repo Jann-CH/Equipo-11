@@ -524,3 +524,104 @@ export const updateStateRepository = async (
     return result.rows[0] || null;
 
 }
+
+export const updatePublicStateRepository = async (
+    presupuestoId,
+    estado
+) => {
+
+    const query = `
+        UPDATE presupuestos
+        SET
+            estado = $1,
+            updated_at = NOW()
+        WHERE
+            id = $2
+            AND deleted_at IS NULL
+        RETURNING
+            id,
+            numero,
+            estado,
+            updated_at;
+    `;
+
+    const values = [
+        estado,
+        presupuestoId,
+    ];
+
+    const { rows } = await pool.query(query, values);
+
+    return rows[0] || null;
+};
+
+
+export const findPublicPresupuestoConDetallesRepository = async (
+    presupuestoId
+) => {
+
+    const query = `
+        SELECT
+            p.id,
+            p.numero,
+            p.fecha,
+            p.fecha_vencimiento,
+            p.subtotal,
+            p.total,
+            p.estado,
+            p.observaciones,
+            p.updated_at,
+
+            c.nombre AS cliente_nombre,
+            c.apellido AS cliente_apellido,
+            c.telefono AS cliente_telefono,
+            c.email AS cliente_email,
+
+            u.nombre AS usuario_nombre,
+            u.apellido AS usuario_apellido,
+            u.telefono AS usuario_telefono,
+            u.email AS usuario_email,
+            u.nombre_emprendimiento,
+            u.logo_url,
+
+            JSON_AGG(
+                JSON_BUILD_OBJECT(
+                    'id', dp.id,
+                    'item_id', dp.item_id,
+                    'nombre_item', dp.nombre_item,
+                    'cantidad', dp.cantidad,
+                    'precio_unitario', dp.precio_unitario,
+                    'subtotal', dp.subtotal
+                )
+                ORDER BY dp.created_at
+            ) AS detalles
+
+        FROM presupuestos p
+        JOIN clientes c
+            ON p.cliente_id = c.id
+        JOIN usuarios u
+            ON p.usuario_id = u.id
+        LEFT JOIN detalle_presupuesto dp
+            ON dp.presupuesto_id = p.id
+
+        WHERE p.id = $1
+        AND p.deleted_at IS NULL
+
+        GROUP BY
+            p.id,
+            c.nombre,
+            c.apellido,
+            c.telefono,
+            c.email,
+            u.nombre,
+            u.apellido,
+            u.telefono,
+            u.email,
+            u.nombre_emprendimiento,
+            u.logo_url;
+    `;
+
+    const { rows } = await pool.query(query, [presupuestoId]);
+
+    return rows[0] || null;
+};

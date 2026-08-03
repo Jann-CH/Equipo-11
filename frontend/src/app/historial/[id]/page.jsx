@@ -1,7 +1,7 @@
 "use client";
 
 import { use } from "react";
-import PresupuestoDetalle from "@/components/ui/PresupuestoDetalle"; 
+import PresupuestoDetalle from "@/components/presupuesto/PresupuestoDetalle"; 
 
 
 export default function Page({ params }) {

@@ -12,6 +12,8 @@ import {
     getDashboardDataRepository,
     getBudgetRepository,
     updateStateRepository,
+    updatePublicStateRepository,
+    findPublicPresupuestoConDetallesRepository,
 } from "../repositories/presupuesto.repository.js";
 
 import { verifyUserByIdExistsRepository } from "../repositories/usuario.repository.js";
@@ -211,4 +213,53 @@ export const updateStateService = async (estado, presupuestoId, usuarioId) => {
     }
 
     return presupuestoActualizado;
+};
+
+
+export const getPublicPresupuestoService = async (
+    presupuestoId
+) => {
+
+    const presupuesto =
+        await findPublicPresupuestoConDetallesRepository(
+            presupuestoId
+        );
+
+    if (!presupuesto) {
+        throw new AppError(
+            "El presupuesto no existe",
+            404
+        );
+    }
+
+    return presupuesto;
+};
+
+export const updatePublicStateService = async (
+    presupuestoId,
+    estado
+) => {
+
+    if (!estado) {
+        throw new AppError("El estado es obligatorio", 400);
+    }
+
+    if (!["Aceptado", "Rechazado"].includes(estado)) {
+        throw new AppError("Estado inválido", 400);
+    }
+
+    const presupuesto =
+        await updatePublicStateRepository(
+            presupuestoId,
+            estado
+        );
+
+    if (!presupuesto) {
+        throw new AppError(
+            "Presupuesto no encontrado",
+            404
+        );
+    }
+
+    return presupuesto;
 };

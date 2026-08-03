@@ -6,6 +6,8 @@ import {
     getDashboardDataService,
     getBudgetService,
     updateStateService,
+    getPublicPresupuestoService,
+    updatePublicStateService,
 } from "../services/presupuesto.service.js";
 
 import {
@@ -255,4 +257,63 @@ export const updateStateController = async (req, res, next) => {
     } catch (err) {
         next(err);
     } 
+};
+
+
+export const getPublicPresupuestoController = async (
+    req,
+    res,
+    next
+) => {
+    try {
+        const { id: presupuestoId } = req.params;
+
+        const presupuesto =
+            await getPublicPresupuestoService(
+                presupuestoId
+            );
+
+        res.status(200).json({
+            success: true,
+            presupuesto,
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const updatePublicStateController = async (
+    req,
+    res,
+    next
+) => {
+    try {
+
+        const { id: presupuestoId } = req.params;
+        const { estado } = req.body;
+
+
+        await updatePublicStateService(
+            presupuestoId,
+            estado
+        );
+
+
+        const presupuesto =
+            await getPublicPresupuestoService(
+                presupuestoId
+            );
+
+
+        res.status(200).json({
+            success: true,
+            message: "Estado actualizado correctamente.",
+            presupuesto,
+        });
+
+
+    } catch (error) {
+        next(error);
+    }
 };

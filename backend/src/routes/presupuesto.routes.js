@@ -9,12 +9,31 @@ import {
     getBudgetController,
     downloadPdfController,
     updateStateController,
+    updatePublicStateController,
+    getPublicPresupuestoController
+    
 } from "../controllers/presupuesto.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validateUUID } from "../middlewares/validateUUID.middleware.js";
 import { upload } from "../middlewares/upload.middleware.js";
 
 const router = Router();
+
+// ==========================================
+// RUTA PÚBLICA
+// ==========================================
+
+router.patch(
+    "/public/:id/estado",
+    validateUUID,
+    updatePublicStateController
+);
+
+router.get(
+    "/public/:id",
+    validateUUID,
+    getPublicPresupuestoController
+);
 
 // Todas las rutas de presupuestos requieren autenticación
 router.use(authMiddleware);
