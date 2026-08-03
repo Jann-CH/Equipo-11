@@ -38,7 +38,7 @@ export const LoginForm = () => {
   };
 
   return (
-    <div className="w-full max-w-md relative">
+    <div >
 
       {isSubmitting && (
         <Loading variant="overlay" text="Iniciando sesión..." />
