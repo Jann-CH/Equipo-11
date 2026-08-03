@@ -70,7 +70,7 @@ export default function LandingPage() {
   return (
     <div
       ref={rootRef}
-      className="font-sans text-navy bg-canvas leading-relaxed max-w-full overflow-x-hidden"
+      className="font-sans text-navy bg-canvas leading-relaxed w-[100vw] relative left-[50%] right-[50%] -ml-[50vw] -mr-[50vw] overflow-x-hidden mt-[-1rem]"
     >
       <header
         className="sticky top-0 z-50 bg-navy/[0.92] backdrop-blur-sm transition-shadow duration-300 motion-reduce:transition-none"
