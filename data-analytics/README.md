@@ -25,6 +25,7 @@ data-analytics/
 │   └── queries_dbeaver.sql       <-- Consultas exploratorias en PostgreSQL
 └── datasets/
     └── dashboard_innova_mvp.csv  <-- Dataset consolidado para Looker Studio
+```
 
 
 
