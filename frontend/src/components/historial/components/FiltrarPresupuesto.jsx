@@ -109,7 +109,7 @@ export default function FiltrarPresupuesto({
             <div className="flex flex-col">
               {[
                 { label: "Pendientes", val: "Pendiente" },
-                { label: "Aprobados", val: "Aprobado" },
+                { label: "Aprobados", val: "Aceptado" },
                 { label: "Rechazados", val: "Rechazado" },
                 { label: "Borradores", val: "Borrador" },
               ].map((est) => {

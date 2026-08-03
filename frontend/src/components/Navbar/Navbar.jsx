@@ -25,11 +25,12 @@ export const Navbar = () => {
   const isActive = (path) => {
     if (!pathname) return false;
 
-    // Si la ruta es /home, validamos que coincida exactamente
-    if (pathname === "/home" || pathname === "/login" || pathname === "/") {
-    return null;
-  }
+    // Si estamos en login o en la raíz, ningún ítem del navbar debe estar activo
+    if (pathname === "/login" || pathname === "/") {
+      return false;
+    }
 
+    // Compara si la ruta actual coincide exactamente con el path o es una sub-ruta (ej: /perfil/datos)
     return pathname === path || pathname.startsWith(path + "/");
   };
 

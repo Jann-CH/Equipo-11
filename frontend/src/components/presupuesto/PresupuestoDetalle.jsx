@@ -16,7 +16,7 @@ export default function PresupuestoDetalle({ params }) {
   }
 
   return (
-    <section className="min-h-screen bg-gray-50 p-4 max-w-md mx-auto">
+    <div>
       <PresupuestoCard presupuesto={presupuesto} />
 
       <div className="mt-4 bg-white p-4 rounded-xl">
@@ -29,6 +29,6 @@ export default function PresupuestoDetalle({ params }) {
           <option>Rechazado</option>
         </select>
       </div>
-    </section>
+    </div>
   );
 }

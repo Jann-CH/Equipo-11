@@ -57,13 +57,13 @@ export default function ClienteConPresupuesto({
         </span>
 
         {/* Si no es vista completa, mostramos el botón que dispara la función del padre */}
-        {!esVistaCompleta && onVerMasClick && (
-          <button
-            onClick={onVerMasClick}
+        {!esVistaCompleta && (
+          <Link
+            href="/historial/lista"
             className="text-[#2E7D5B] text-[13px] font-bold cursor-pointer hover:underline bg-transparent border-none p-0"
           >
             Ver más
-          </button>
+          </Link>
         )}
       </div>
       {/* Lista de presupuestos */}

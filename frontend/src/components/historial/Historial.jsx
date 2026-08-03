@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import ButtonListadoCalendario from "./components/ButtonListadoCalendario";
 import FiltrosPresupuestos from "./components/FiltrosPresupuestos";
 import CalendarioPresupuestos from "./components/CalendarioPresupuesto";
@@ -10,9 +11,10 @@ import Spinner from "@/components/ui/loading/Spinner";
 import { useFiltroPresupuestos } from "./hooks/useFiltroPresupuesto";
 
 export default function Historial() {
-  // Estado para controlar la vista activa: "listado" o "calendario"
+
+  const searchParams = useSearchParams();
+  const estadoUrl = searchParams.get("estado");
   const [vistaActiva, setVistaActiva] = useState("listado");
-  const [verMas, setVerMas] = useState(false);
 
   const {
     presupuestos,
@@ -24,7 +26,7 @@ export default function Historial() {
     cambiarPagina,
     actualizarFiltros,
     limpiarFiltros,
-  } = useFiltroPresupuestos(5);
+  } = useFiltroPresupuestos(5, estadoUrl);
 
   // Función para manejar el cambio de vista y limpiar/ajustar filtros si es necesario
   const cambiarVista = (nuevaVista) => {
@@ -32,22 +34,10 @@ export default function Historial() {
     limpiarFiltros(); // Opcional: limpia los filtros al cambiar de pestaña
   };
 
-  if (verMas) {
-    return (
-      <VerMasClientes
-        presupuestos={presupuestos}
-        loading={loading}
-        paginaActual={paginaActual}
-        totalRegistros={totalRegistros}
-        totalPaginas={totalPaginas}
-        onCambiarPagina={cambiarPagina}
-        onVolver={() => setVerMas(false)}
-      />
-    );
-  }
+ 
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 p-4 max-w-md mx-auto">
+    <div>
       <h1 className="text-[24px] font-bold leading-[32px] text-[#0B1001]  mb-4">
         Historial
       </h1>
@@ -63,6 +53,7 @@ export default function Historial() {
           <FiltrosPresupuestos
             onFiltrar={actualizarFiltros}
             totalRegistros={totalRegistros}
+            estadoInicial={estadoUrl}
           />
 
           {loading && <Spinner />}
@@ -77,7 +68,6 @@ export default function Historial() {
               totalPaginas={totalPaginas}
               onCambiarPagina={cambiarPagina}
               esVistaCompleta={false}
-              onVerMasClick={() => setVerMas(true)}
             />
           )}
         </>

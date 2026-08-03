@@ -6,13 +6,14 @@ import { DateAndImg } from "./components/DateAndImg";
 import { TotalActivo } from "./components/TotalActivo";
 import { ActividadSemanal } from "./components/ActividadSemanal";
 import ClienteConPresupuesto from "@/components/ui/ClientesConPresupuesto";
-import VerMasClientes from "@/components/ui/VerMasClientes";
 import { useDashboard } from "./hooks/useDashboard";
 import { useFiltroPresupuestos } from "@/components/historial/hooks/useFiltroPresupuesto";
 
 
 export default function Dashboard() {
   const { data, loading, error, periodo, cambiarPeriodo } = useDashboard();
+
+  
 
   const {
     presupuestos,
@@ -23,8 +24,6 @@ export default function Dashboard() {
     error: errorPresupuestos,
     cambiarPagina,
   } = useFiltroPresupuestos(5);
-
-  const [verMas, setVerMas] = useState(false);
 
   if (loading && !data) {
     return <Loading text="Cargando inicio..." />;
@@ -40,21 +39,6 @@ export default function Dashboard() {
 
   const estadisticas = data?.estadisticas || {};
   const actividadSemanal = data?.actividadSemanal || [];
-
-  // 3. Si "verMas" está activo, renderizamos directamente el componente VerMasClientes
-  if (verMas) {
-    return (
-      <VerMasClientes
-        presupuestos={presupuestos}
-        loading={loadingPresupuestos}
-        paginaActual={paginaActual}
-        totalRegistros={totalRegistros}
-        totalPaginas={totalPaginas}
-        onCambiarPagina={cambiarPagina}
-        onVolver={() => setVerMas(false)}
-      />
-    );
-  }
 
   return (
     <>
@@ -91,7 +75,6 @@ export default function Dashboard() {
             totalPaginas={totalPaginas}
             onCambiarPagina={cambiarPagina}
             esVistaCompleta={false}
-            onVerMasClick={() => setVerMas(true)}
           />
    
       </div>

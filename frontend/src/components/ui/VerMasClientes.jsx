@@ -1,36 +1,49 @@
 "use client";
 
-import ClienteConPresupuesto from "@/components/ui/ClientesConPresupuesto";
+import ClientesConPresupuesto from "@/components/ui/ClientesConPresupuesto";
 import { BackButton } from "@/components/ui/BackButton";
-export default function VerMasClientes({
-  presupuestos,
-  loading,
-  paginaActual,
-  totalRegistros,  
-  totalPaginas,
-  onCambiarPagina,
-  onVolver,
-}) {
+import Spinner from "@/components/ui/loading/Spinner";
+import { useFiltroPresupuestos } from "@/components/historial/hooks/useFiltroPresupuesto";// Ajusta la ruta de tu hook si es necesario
+import Link from "next/link";
+
+export default function TodosLosPresupuestosPage() {
+  // Pedimos los datos (aquí puedes pasarle un límite mayor, por ejemplo 10 por página)
+  const {
+    presupuestos,
+    totalPaginas,
+    totalRegistros,
+    paginaActual,
+    loading,
+    error,
+    cambiarPagina,
+  } = useFiltroPresupuestos(10);
+
   return (
-    <div className="w-full max-w-md mx-auto font-sans bg-gray-50 min-h-screen pb-28 p-4">
-      {/* Cabecera con botón de retroceso hacia el Home */}
+    <div >
+      {/* Cabecera con botón de retroceso hacia el Historial */}
       <div className="sticky top-0 bg-gray-50 z-40 py-4 border-b border-gray-100 mb-4 flex items-center gap-3">
-          <BackButton onClick={onVolver} />
+        
+          <BackButton />
+    
         <h1 className="text-xl font-bold text-[#0B376D]">
           Todos los Presupuestos
         </h1>
       </div>
 
-      {/* Lista de presupuestos de a 10 */}
-      <ClienteConPresupuesto
-        presupuestos={presupuestos}
-        loading={loading}
-        paginaActual={paginaActual}
-        totalPaginas={totalPaginas}
-        totalRegistros={totalRegistros}
-        cambiarPagina={onCambiarPagina}
-        esVistaCompleta={true}
-      />
+      {loading && <Spinner />}
+      {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+
+      {!loading && !error && (
+        <ClientesConPresupuesto
+          presupuestos={presupuestos}
+          loading={loading}
+          paginaActual={paginaActual}
+          totalPaginas={totalPaginas}
+          totalRegistros={totalRegistros}
+          onCambiarPagina={cambiarPagina}
+          esVistaCompleta={true}
+        />
+      )}
     </div>
   );
 }

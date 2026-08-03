@@ -1,22 +1,37 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import FiltrarPresupuesto from "./FiltrarPresupuesto";
 
-export default function FiltrosPresupuestos({ onFiltrar, totalRegistros }) {
+export default function FiltrosPresupuestos({ onFiltrar, totalRegistros, estadoInicial = "" }) {
+  const router = useRouter();       
+  const pathname = usePathname();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [ordenSeleccionado, setOrdenSeleccionado] = useState("reciente");
 
   // Estado para almacenar los filtros activos y mostrarlos en pantalla
   const [filtrosActivos, setFiltrosActivos] = useState({
-    estado: "",
+    estado: estadoInicial,
     periodoSeleccionado: "",
     montoMin: "",
     montoMax: "",
     fechaInicio: "",
     fechaFin: "",
   });
+
+  useEffect(() => {
+    if (estadoInicial) {
+      const nuevosFiltros = {
+        ...filtrosActivos,
+        estado: estadoInicial,
+      };
+      setFiltrosActivos(nuevosFiltros);
+      onFiltrar({ busqueda, ...nuevosFiltros, orden: ordenSeleccionado });
+    }
+  }, [estadoInicial]);
 
   const handleSearchChange = (e) => {
     const valor = e.target.value;
@@ -47,6 +62,7 @@ export default function FiltrosPresupuestos({ onFiltrar, totalRegistros }) {
     setFiltrosActivos(resetFiltros);
     setBusqueda("");
     setOrdenSeleccionado("reciente");
+    router.replace(pathname, { scroll: false });
     onFiltrar({ busqueda: "", ...resetFiltros, orden: "reciente" });
   };
 

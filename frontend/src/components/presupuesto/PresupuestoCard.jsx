@@ -1,4 +1,5 @@
 "use client";
+import { BackButton } from "@/components/ui/BackButton";
 
 export default function PresupuestoCard({ presupuesto }) {
 
@@ -6,10 +7,13 @@ export default function PresupuestoCard({ presupuesto }) {
 
   return (
     <div>
+         
           {/* Cabecera */}
-          <div className="flex items-center gap-3  mb-4">
+          <div className="flex items-center gap-5  mb-4">
+            <BackButton />
             <h1 className="text-xl font-bold text-[#0B376D]">Presupuesto {presupuesto.numero || `#P-${presupuesto.id?.substring(0, 4)}`}</h1>
           </div>
+          
     
           {/* Tarjeta Principal / Info del Cliente */}
           <div className="bg-white border border-gray-100 shadow-sm p-4 rounded-[20px] flex flex-col gap-4 mb-6">

@@ -4,11 +4,11 @@ import {
     getPresupuestosFiltroService,
 } from "@/services/presupuesto.service";
 
-export function useFiltroPresupuestos(initialLimite = 10) { // Corregido el typo "initilialLimite"
+export function useFiltroPresupuestos(initialLimite = 10, initialEstado = "") { // Corregido el typo "initilialLimite"
 
     const [pagina, setPagina] = useState(1);
-    const [limite, setLimite] = useState(initialLimite);
-    const [filtros, setFiltros] = useState({});
+    const [limite, setLimite] = useState(initialLimite); // Corregido el typo "initilialLimite"
+    const [filtros, setFiltros] = useState(initialEstado ? { estado: initialEstado } : {});
     const [resultado, setResultado] = useState({ data: [], meta: {} });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);

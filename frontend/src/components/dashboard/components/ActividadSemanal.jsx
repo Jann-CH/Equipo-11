@@ -1,8 +1,46 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from 'recharts';
 
 export const ActividadSemanal = ({ actividadSemanal = [], periodo, cambiarPeriodo }) => {
+  // 1. Definimos los días base en orden de la semana y su etiqueta en español
+  const estructuraSemana = [
+    { keyEn: "Mon", keyEs: "Lun" },
+    { keyEn: "Tue", keyEs: "Mar" },
+    { keyEn: "Wed", keyEs: "Mié" },
+    { keyEn: "Thu", keyEs: "Jue" },
+    { keyEn: "Fri", keyEs: "Vie" },
+    { keyEn: "Sat", keyEs: "Sáb" },
+    { keyEn: "Sun", keyEs: "Dom" },
+  ];
+
+  // 2. Mapeamos los datos para asegurar que los 7 días estén presentes siempre
+  const datosCompletos = estructuraSemana.map((diaObj) => {
+    // Buscamos si la API trajo datos para este día (coincidiendo en inglés o español)
+    const encontrado = actividadSemanal.find(
+      (item) => 
+        item.dia?.toLowerCase() === diaObj.keyEn.toLowerCase() || 
+        item.dia?.toLowerCase() === diaObj.keyEs.toLowerCase()
+    );
+
+    return {
+      dia: diaObj.keyEs,
+      aprobados: encontrado ? encontrado.aprobados : 0,
+      pendientes: encontrado ? encontrado.pendientes : 0,
+      rechazados: encontrado ? encontrado.rechazados : 0,
+    };
+  });
+
   return (
     <div className="w-full bg-white shadow-[0px_4px_16px_rgba(0,31,77,0.06)] rounded-[20px] p-5 flex flex-col justify-between mb-4">
       
@@ -11,9 +49,12 @@ export const ActividadSemanal = ({ actividadSemanal = [], periodo, cambiarPeriod
         <span className="text-[#0B376D] text-lg font-bold">
           Actividad semanal
         </span>
-        <span className="text-[#2E7D5B] text-[13px] font-bold cursor-pointer hover:underline">
+        <Link
+          href="/dashboard/modo-dashboard" 
+          className="text-[#2E7D5B] text-[13px] font-bold cursor-pointer hover:underline"
+        >
           Ver más
-        </span>
+        </Link>
       </div>
 
       {/* Filtros superiores interactivos (Diario, Semanal, Mensual) */}
@@ -38,37 +79,26 @@ export const ActividadSemanal = ({ actividadSemanal = [], periodo, cambiarPeriod
         </button>
       </div>
 
-      {/* Gráfico de Barras */}
-      <div className="flex justify-around items-end h-[120px] px-2 mb-4 border-b border-gray-100 pb-4">
-        {actividadSemanal.length > 0 ? (
-          actividadSemanal.map((item, index) => (
-            <div key={index} className="flex flex-col items-center gap-2 h-full justify-end">
-              <div className="flex items-end gap-1.5 h-[85px]">
-                {/* Barra Aprobados */}
-                <div 
-                  style={{ height: `${Math.max(Math.min(item.aprobados * 8, 75), 4)}px` }}
-                  className="w-[7px] bg-[#013364] rounded-t-[4px]"
-                  title={`Aprobados: ${item.aprobados}`}
-                ></div>
-                {/* Barra Pendientes */}
-                <div 
-                  style={{ height: `${Math.max(Math.min(item.pendientes * 8, 75), 4)}px` }}
-                  className="w-[7px] bg-[#4D7093] rounded-t-[4px]"
-                  title={`Pendientes: ${item.pendientes}`}
-                ></div>
-                {/* Barra Rechazados */}
-                <div 
-                  style={{ height: `${Math.max(Math.min(item.rechazados * 8, 75), 4)}px` }}
-                  className="w-[7px] bg-[#B3C2D0] rounded-t-[4px]"
-                  title={`Rechazados: ${item.rechazados}`}
-                ></div>
-              </div>
-              <span className="text-xs text-black/50 font-semibold">{item.dia}</span>
-            </div>
-          ))
-        ) : (
-          <span className="text-xs text-black/30 m-auto">Sin actividad registrada</span>
-        )}
+      {/* Gráfico de Barras con Recharts (Muestra siempre los 7 días) */}
+      <div className="h-[140px] w-full mb-4 border-b border-gray-100 pb-2">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={datosCompletos} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+            <XAxis dataKey="dia" stroke="#9ca3af" fontSize={11} tickLine={false} />
+            <YAxis stroke="#9ca3af" fontSize={10} tickLine={false} axisLine={false} allowDecimals={false} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#fff",
+                borderColor: "#e5e7eb",
+                borderRadius: "8px",
+                fontSize: "12px",
+              }}
+            />
+            <Bar dataKey="aprobados" name="Aprobados" fill="#013364" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="pendientes" name="Pendientes" fill="#4D7093" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="rechazados" name="Rechazados" fill="#B3C2D0" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Leyenda inferior */}

@@ -7,7 +7,7 @@ import { getMeService, logoutService } from "@/services/authService";
 import { MenuItem } from "./MenuItem";
 import { AvatarEmpresa } from "../../ui/AvatarEmpresa";
 import Loading from "../../ui/loading/Loading";
-import { FadeIn } from "@/components/ui/FadeIn";
+
 import {
   UserIcon,
   BuildingOfficeIcon,
@@ -52,10 +52,10 @@ export const PerfilHome = () => {
     }
   };
 
-  if (!user) return <Loading variant="overlay" text="Cargando perfil..." />;
+  if (!user) return <Loading  text="Cargando perfil..." />;
 
   return (
-    <FadeIn>
+    <>
      
         {/* Tarjeta de usuario con datos reales */}
         <section className="mb-6 rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
@@ -200,6 +200,6 @@ export const PerfilHome = () => {
           {loggingOut ? "Cerrando sesión..." : "Cerrar sesión"}
         </button>
       
-    </FadeIn>
+    </>
   );
 };

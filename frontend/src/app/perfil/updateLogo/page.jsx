@@ -31,8 +31,8 @@ export default function UpdateLogoPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-gray-50">
-        <div className="max-w-md mx-auto">
+
+        <div className="pb-8">
           {/* Usamos tu componente reutilizable */}
           <div className="flex items-center mb-6">
             <BackButton />
@@ -44,7 +44,7 @@ export default function UpdateLogoPage() {
           {/* Renderizamos el formulario global pasándole el usuario obtenido */}
           <EditarLogoForm user={user} />
         </div>
-      </main>
+      
     </>
   );
 }
