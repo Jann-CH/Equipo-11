@@ -1,0 +1,10 @@
+[ PostgreSQL (Render) ]  +  [ Eventos UI (Firebase / Logs) ]
+           \                       /
+            \                     /
+       [ Pipeline ETL en Python (Colab) ]
+                       |
+                       v
+       [ Dataset Consolidado (CSV / SQL) ]
+                       |
+                       v
+     [ Dashboard Ejecutivo (Looker Studio) ]
