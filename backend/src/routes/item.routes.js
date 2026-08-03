@@ -2,11 +2,13 @@ import { Router } from "express";
 import { 
     createItemController,
     getItemsController,
-    updateItemController
+    updateItemController,
 } from "../controllers/item.controller.js";
+
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
 import { createItemValidation } from "../validators/item.validator.js";
+
 const router = Router();
 
 // Todas las rutas de ítems requieren autenticación

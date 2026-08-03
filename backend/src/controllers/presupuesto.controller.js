@@ -8,6 +8,7 @@ import {
     updateStateService,
     getPublicPresupuestoService,
     updatePublicStateService,
+    updatePresupuestoService,
 } from "../services/presupuesto.service.js";
 
 import {
@@ -35,7 +36,9 @@ export const createPresupuesto = async (req, res, next) => {
                     ? JSON.parse(req.body.detalles)
                     : req.body.detalles;
         } catch {
-            return next(new AppError("El campo 'detalles' no es un JSON válido", 400));
+            return next(
+                new AppError("El campo 'detalles' no es un JSON válido", 400)
+            );
         }
 
         const datosPresupuesto = {
@@ -47,52 +50,183 @@ export const createPresupuesto = async (req, res, next) => {
             observaciones: req.body.observaciones,
             detalles,
         };
+console.log("DATOS QUE VAN AL SERVICE:", datosPresupuesto);
 
         // Crear presupuesto en BD
-        const resultado = await createPresupuestoCompletoService(datosPresupuesto);
+        const resultado =
+            await createPresupuestoCompletoService(datosPresupuesto);
+console.log("PRESUPUESTO CREADO:", resultado);
+        let pdfData = {};
 
-        // Traer datos completos para PDF
-        const presupuestoCompleto = await findPresupuestoConDetallesRepository(
-            resultado.id,
-            usuarioId
-        );
 
-        // Generar PDF
-        const pdfBuffer = await generarPresupuestoPDF(presupuestoCompleto);
+        // Solo genera PDF cuando pasa a Guardado
+        if (resultado.estado === "Guardado") {
 
-        // ===============================
-        // SUBIR A CLOUDINARY
-        // ===============================
-        const nombreCliente = `${presupuestoCompleto.cliente_nombre}_${presupuestoCompleto.cliente_apellido}`;
-        const fechaCreacion = new Date().toISOString().split("T")[0];
+            const presupuestoCompleto =
+                await findPresupuestoConDetallesRepository(
+                    resultado.id,
+                    usuarioId
+                );
 
-        const upload = await uploadPresupuestoService(
-            pdfBuffer,
-            nombreCliente,
-            fechaCreacion
-        );
 
-        // Guardar URL PDF
-        await addPdfRepository({
-            usuarioId,
-            presupuestoId: resultado.id,
-            pdf_url: upload.url,
-            pdf_public_id: upload.public_id,
-            estado: resultado.estado,
-        });
+            const pdfBuffer =
+                await generarPresupuestoPDF(
+                    presupuestoCompleto
+                );
+
+
+            const nombreCliente =
+                `${presupuestoCompleto.cliente_nombre}_${presupuestoCompleto.cliente_apellido}`;
+
+
+            const fechaCreacion =
+                new Date().toISOString().split("T")[0];
+
+
+            const upload =
+                await uploadPresupuestoService(
+                    pdfBuffer,
+                    nombreCliente,
+                    fechaCreacion
+                );
+
+
+            await addPdfRepository({
+                usuarioId,
+                presupuestoId: resultado.id,
+                pdf_url: upload.url,
+                pdf_public_id: upload.public_id,
+                estado: resultado.estado,
+            });
+
+
+            pdfData = {
+                pdf_url: upload.url,
+                pdf_public_id: upload.public_id,
+                cliente_telefono: presupuestoCompleto.cliente_telefono,
+            };
+        }
+
 
         res.status(201).json({
             success: true,
             message: "Se creó un nuevo presupuesto",
             presupuesto: {
                 ...resultado,
-                pdf_url: upload.url,
-                pdf_public_id: upload.public_id,
-                cliente_telefono: presupuestoCompleto.cliente_telefono,
-                
+                ...pdfData,
             },
         });
+
+
     } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * PUT /api/presupuestos/:id
+ * Editar presupuesto (borradores)
+ */
+export const updatePresupuestoController = async (req, res, next) => {
+    try {
+        const usuarioId = req.auth.id;
+        const { id } = req.params;
+
+        let detalles;
+
+        try {
+            detalles =
+                typeof req.body.detalles === "string"
+                    ? JSON.parse(req.body.detalles)
+                    : req.body.detalles;
+
+        } catch {
+            return next(
+                new AppError("El campo detalles no es un JSON válido", 400)
+            );
+        }
+
+
+        const datosPresupuesto = {
+            usuarioId,
+            presupuestoId: id,
+            clienteId: req.body.cliente_id,
+            fecha: req.body.fecha,
+            fechaVencimiento: req.body.fecha_vencimiento,
+            estado: req.body.estado,
+            observaciones: req.body.observaciones,
+            detalles,
+        };
+
+
+        const presupuestoActualizado =
+    await updatePresupuestoService(datosPresupuesto);
+
+
+let pdfData = {};
+
+
+// Si estaba borrador y ahora se genera
+if (presupuestoActualizado.estado === "Guardado") {
+
+    const presupuestoCompleto =
+        await findPresupuestoConDetallesRepository(
+            id,
+            usuarioId
+        );
+
+
+    const pdfBuffer =
+        await generarPresupuestoPDF(
+            presupuestoCompleto
+        );
+
+
+    const nombreCliente =
+        `${presupuestoCompleto.cliente_nombre}_${presupuestoCompleto.cliente_apellido}`;
+
+
+    const fechaCreacion =
+        new Date().toISOString().split("T")[0];
+
+
+    const upload =
+        await uploadPresupuestoService(
+            pdfBuffer,
+            nombreCliente,
+            fechaCreacion
+        );
+
+
+    await addPdfRepository({
+        usuarioId,
+        presupuestoId: id,
+        pdf_url: upload.url,
+        pdf_public_id: upload.public_id,
+        estado: "Guardado",
+    });
+
+
+    pdfData = {
+        pdf_url: upload.url,
+        pdf_public_id: upload.public_id,
+        cliente_telefono: presupuestoCompleto.cliente_telefono,
+    };
+
+}
+
+
+res.status(200).json({
+    success: true,
+    message: "Presupuesto actualizado correctamente",
+    presupuesto: {
+        ...presupuestoActualizado,
+        ...pdfData,
+    },
+});
+
+
+    } catch(error) {
         next(error);
     }
 };

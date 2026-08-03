@@ -625,3 +625,115 @@ export const findPublicPresupuestoConDetallesRepository = async (
 
     return rows[0] || null;
 };
+
+export const updatePresupuestoRepository = async ({
+    presupuestoId,
+    usuarioId,
+    clienteId,
+    fecha,
+    fechaVencimiento,
+    estado,
+    observaciones,
+    subtotal,
+    total,
+    detallesProcesados,
+}) => {
+
+    const client = await pool.connect();
+
+    try {
+
+        await client.query("BEGIN");
+
+
+        await client.query(
+            `
+            UPDATE presupuestos
+            SET
+                cliente_id = $1,
+                fecha = $2,
+                fecha_vencimiento = $3,
+                estado = $4,
+                observaciones = $5,
+                subtotal = $6,
+                total = $7,
+                updated_at = NOW()
+
+            WHERE id = $8
+            AND usuario_id = $9
+            AND deleted_at IS NULL;
+            `,
+            [
+                clienteId,
+                fecha,
+                fechaVencimiento,
+                estado,
+                observaciones || null,
+                subtotal,
+                total,
+                presupuestoId,
+                usuarioId
+            ]
+        );
+
+
+        await client.query(
+            `
+            DELETE FROM detalle_presupuesto
+            WHERE presupuesto_id = $1;
+            `,
+            [
+                presupuestoId
+            ]
+        );
+
+
+        for (const det of detallesProcesados) {
+
+            await client.query(
+                `
+                INSERT INTO detalle_presupuesto
+                (
+                    presupuesto_id,
+                    item_id,
+                    nombre_item,
+                    cantidad,
+                    precio_unitario,
+                    subtotal
+                )
+                VALUES($1,$2,$3,$4,$5,$6);
+                `,
+                [
+                    presupuestoId,
+                    det.item_id,
+                    det.nombre_item,
+                    det.cantidad,
+                    det.precio_unitario,
+                    det.subtotal
+                ]
+            );
+
+        }
+
+
+        await client.query("COMMIT");
+
+
+        return {
+            id: presupuestoId,
+            estado,
+        };
+
+
+    } catch(error){
+
+        await client.query("ROLLBACK");
+        throw error;
+
+    } finally {
+
+        client.release();
+
+    }
+
+};

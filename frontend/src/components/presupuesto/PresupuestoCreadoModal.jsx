@@ -3,12 +3,19 @@
 import {
   CheckIcon,
   ArrowDownTrayIcon,
-  EyeIcon,
   PaperAirplaneIcon,
   PencilSquareIcon,
+  DocumentCheckIcon,
 } from "@heroicons/react/24/outline";
+import { X } from "lucide-react";
 
-export const PresupuestoCreadoModal = ({ open, tipo = "presupuesto", onClose, onPrimary, onSecondary }) => {
+export const PresupuestoCreadoModal = ({
+  open,
+  tipo = "presupuesto",
+  onClose,
+  onPrimary,
+  onSecondary,
+}) => {
   if (!open) return null;
 
   const config = {
@@ -23,10 +30,10 @@ export const PresupuestoCreadoModal = ({ open, tipo = "presupuesto", onClose, on
     borrador: {
       titulo: "Presupuesto guardado",
       subtitulo: "como borrador",
-      primaryText: "Ver",
-      secondaryText: "Editar",
-      primaryIcon: <EyeIcon className="w-5 h-5" />,
-      secondaryIcon: <PencilSquareIcon className="w-5 h-5" />,
+      primaryText: "Editar",
+      secondaryText: "Confirmar",
+      primaryIcon: <PencilSquareIcon className="w-5 h-5" />,
+      secondaryIcon: <DocumentCheckIcon  className="w-5 h-5" />,
     },
   };
 
@@ -37,13 +44,43 @@ export const PresupuestoCreadoModal = ({ open, tipo = "presupuesto", onClose, on
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-[2px] px-4"
       onClick={onClose}
     >
-      <div className="w-full max-w-md overflow-hidden rounded-[32px] bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex flex-col items-center px-6 pt-4 pb-3">
+      <div
+        className="relative w-full max-w-md overflow-hidden rounded-[32px] bg-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Botón cerrar */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="
+            absolute
+            top-4
+            right-4
+            w-9
+            h-9
+            rounded-full
+            flex
+            items-center
+            justify-center
+            bg-transparent
+            transition-all
+            duration-200
+            hover:bg-[#123B5D]
+            group
+          "
+        >
+          <X
+            size={20}
+            className="text-gray-500 transition-colors duration-200 group-hover:text-white"
+          />
+        </button>
+
+        <div className="flex flex-col items-center px-6 pt-8 pb-3">
           <div className="flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-[#123B5D]">
             <CheckIcon className="h-8 w-8 text-[#123B5D] stroke-[2.5]" />
           </div>
 
-          <h2 className="mt-1 text-center text-xl font-semibold leading-tight text-[#123B5D]">
+          <h2 className="mt-4 text-center text-xl font-semibold leading-tight text-[#123B5D]">
             {data.titulo}
             <br />
             {data.subtitulo}
@@ -52,6 +89,7 @@ export const PresupuestoCreadoModal = ({ open, tipo = "presupuesto", onClose, on
 
         <div className="grid grid-cols-2 border-t border-[#D9D9D9]">
           <button
+            type="button"
             onClick={onPrimary}
             className="flex items-center justify-center gap-2 border-r border-[#D9D9D9] py-4 text-base font-medium text-[#123B5D] transition hover:bg-[#F8FAF9]"
           >
@@ -60,6 +98,7 @@ export const PresupuestoCreadoModal = ({ open, tipo = "presupuesto", onClose, on
           </button>
 
           <button
+            type="button"
             onClick={onSecondary}
             className="flex items-center justify-center gap-2 py-4 text-base font-medium text-[#E34B4B] transition hover:bg-[#FFF5F5]"
           >

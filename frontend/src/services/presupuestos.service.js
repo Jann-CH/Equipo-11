@@ -14,7 +14,24 @@ export const createPresupuestoService = async (presupuestoData) => {
 
 };
 
+
+export const updatePresupuestoService = async (
+  presupuestoId,
+  presupuestoData
+) => {
+
+  const { data } = await api.put(
+    `/presupuestos/${presupuestoId}`,
+    presupuestoData
+  );
+
+  return data;
+
+};
+
+
 export const downloadPresupuestoService = async (presupuestoId) => {
+
   const response = await api.get(
     `/presupuestos/${presupuestoId}/pdf`,
     {
@@ -23,4 +40,5 @@ export const downloadPresupuestoService = async (presupuestoId) => {
   );
 
   return response.data;
+
 };

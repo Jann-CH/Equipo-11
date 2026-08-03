@@ -10,7 +10,8 @@ import {
     downloadPdfController,
     updateStateController,
     updatePublicStateController,
-    getPublicPresupuestoController
+    getPublicPresupuestoController,
+    updatePresupuestoController,
     
 } from "../controllers/presupuesto.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
@@ -62,6 +63,12 @@ router.post("/", createPresupuesto);
 // Actualizar PDF
 router.put("/:presupuestoId/pdf", upload.single("pdf"), addPdfController);
 
+router.put(
+    "/:id",
+    validateUUID,
+    updatePresupuestoController
+);
+
 // Descargar PDF
 router.get("/:id/pdf", validateUUID, downloadPdfController);
 
@@ -69,5 +76,6 @@ router.get("/:id/pdf", validateUUID, downloadPdfController);
 router.get("/:id", validateUUID, getPresupuestoById);
 //Ruta de ID PARA CAMBIAR EL ESTADO
 router.patch("/:id", validateUUID, updateStateController);
+
 
 export default router;

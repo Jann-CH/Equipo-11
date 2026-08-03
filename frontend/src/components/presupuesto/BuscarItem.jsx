@@ -67,10 +67,6 @@ export const BuscarItem = ({ onAgregarItem }) => {
           Nombre del servicio
           <span className="text-red-500 ml-1">*</span>
         </label>
-
-        <span className="text-xs font-semibold text-[#123B5D]">
-          #P-0040
-        </span>
       </div>
 
       {/* Input */}

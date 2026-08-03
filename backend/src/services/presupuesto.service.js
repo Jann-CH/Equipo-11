@@ -14,6 +14,7 @@ import {
     updateStateRepository,
     updatePublicStateRepository,
     findPublicPresupuestoConDetallesRepository,
+    updatePresupuestoRepository,
 } from "../repositories/presupuesto.repository.js";
 
 import { verifyUserByIdExistsRepository } from "../repositories/usuario.repository.js";
@@ -213,6 +214,79 @@ export const updateStateService = async (estado, presupuestoId, usuarioId) => {
     }
 
     return presupuestoActualizado;
+};
+
+export const updatePresupuestoService = async ({
+    usuarioId,
+    presupuestoId,
+    clienteId,
+    fecha,
+    fechaVencimiento,
+    estado,
+    observaciones,
+    detalles
+}) => {
+
+    if (!detalles || detalles.length === 0) {
+        throw new AppError(
+            "No se puede guardar un presupuesto sin ítems",
+            400
+        );
+    }
+
+    const itemsIds = detalles.map(
+        det => det.item_id
+    );
+
+    const items = await findItemsByIdsRepository(
+        itemsIds,
+        usuarioId
+    );
+
+    if (items.length !== detalles.length) {
+        throw new AppError(
+            "Uno o más items no existen",
+            400
+        );
+    }
+
+
+    let subtotal = 0;
+
+    const detallesProcesados = detalles.map(det => {
+
+        const item = items.find(
+            i => i.id === det.item_id
+        );
+
+        const subtotalItem =
+            Number(det.cantidad) *
+            Number(item.precio);
+
+        subtotal += subtotalItem;
+
+        return {
+            item_id: item.id,
+            nombre_item: item.nombre,
+            cantidad: Number(det.cantidad),
+            precio_unitario: Number(item.precio),
+            subtotal: subtotalItem
+        };
+    });
+
+
+    return await updatePresupuestoRepository({
+        usuarioId,
+        presupuestoId,
+        clienteId,
+        fecha,
+        fechaVencimiento,
+        estado,
+        observaciones,
+        subtotal,
+        total: subtotal,
+        detallesProcesados
+    });
 };
 
 
