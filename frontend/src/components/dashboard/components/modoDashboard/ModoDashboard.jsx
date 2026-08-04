@@ -24,7 +24,7 @@ export default function Dashboard() {
   const {
     presupuestos,
     loading: loadingPresupuestos,  
-  } = useFiltroPresupuestos(4);
+  } = useFiltroPresupuestos(3);
 
   const estadisticas = data?.estadisticas || {};
 

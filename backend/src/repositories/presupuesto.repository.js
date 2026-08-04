@@ -340,7 +340,7 @@ export const findPresupuestosConFiltrosRepository = async (usuarioId, filtros, l
 export const contarPresupuestosConFiltrosRepository = async (usuarioId, filtros) => {
     const conditions = ["p.usuario_id = $1", "p.deleted_at IS NULL"];
     const values = [usuarioId];
-    console.log("Contando ESTADO: ", filtros.estado); // Depuración: muestra los filtros recibidos
+    
     if (filtros.estado) {
         if(filtros.estado === "Pendiente"){
             filtros.estado = "guardado"

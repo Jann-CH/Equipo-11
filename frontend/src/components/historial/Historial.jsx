@@ -16,7 +16,9 @@ export default function Historial() {
   const estadoUrl = searchParams.get("estado");
   const [vistaActiva, setVistaActiva] = useState("listado");
 
-  console.log("1-Estado desde la URL:", estadoUrl); // Depuración: muestra el estado obtenido de la URL
+  if (estadoUrl === "Borradores") {
+    estadoUrl = "Borrador"; 
+  }
 
   const {
     presupuestos,
