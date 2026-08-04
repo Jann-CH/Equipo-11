@@ -3,7 +3,8 @@ import {
     findClientesByClienteRepository,
     updateClienteRepository,
     findClienteByIdRepository,
-    existsClienteRepository
+    existsClienteRepository,
+    filterClientesRepository,
 } from "../repositories/cliente.repository.js";
 
 import { AppError } from "../utils/AppError.util.js";
@@ -59,4 +60,24 @@ export const updateClienteService = async (usuario_id, updateData) => {
 
 
 }
+
+export const filterClientesService = async (usuarioId, filtro = {}, pagina = 1, limite = 5) => {
+    // Aseguramos que página y límite sean números válidos
+    const page = parseInt(pagina, 10) || 1;
+    const limit = parseInt(limite, 10) || 5;
+    const skip = (page - 1) * limit;
+
+    // Llamamos al repositorio pasándole los parámetros requeridos
+    const resultadoRepo = await filterClientesRepository(usuarioId, filtro, limit, skip);
+
+    return {
+        data: resultadoRepo.data,
+        meta: {
+            paginaActual: page,
+            limite: limit,
+            total: resultadoRepo.total,
+            totalPaginas: Math.ceil(resultadoRepo.total / limit) || 1,
+        }
+    };
+};
 

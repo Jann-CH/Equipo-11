@@ -13,7 +13,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import Spinner from "@/components/ui/loading/Spinner";
+import Loading from "@/components/ui/loading/Loading";
 import { BackButton } from "@/components/ui/BackButton";
 import { useDashboard } from "@/components/dashboard/hooks/useDashboard";
 import { useFiltroPresupuestos } from "@/components/historial/hooks/useFiltroPresupuesto";
@@ -21,24 +21,34 @@ import { useFiltroPresupuestos } from "@/components/historial/hooks/useFiltroPre
 export default function Dashboard() {
   const { data, loading } = useDashboard();
 
-  const {
-    presupuestos,
-    loading: loadingPresupuestos,  
-  } = useFiltroPresupuestos(3);
+  const { presupuestos, loading: loadingPresupuestos } =
+    useFiltroPresupuestos(3);
 
   const estadisticas = data?.estadisticas || {};
 
   const total =
     estadisticas.totalPresupuestos > 0 ? estadisticas.totalPresupuestos : 1;
-  const porcAprobados = Math.round(((estadisticas.aceptados || 0) / total) * 100);
-  const porcRechazados = Math.round(((estadisticas.rechazados || 0) / total) * 100);
+  const porcAprobados = Math.round(
+    ((estadisticas.aceptados || 0) / total) * 100,
+  );
+  const porcRechazados = Math.round(
+    ((estadisticas.rechazados || 0) / total) * 100,
+  );
   const porcPendientes = Math.max(0, 100 - (porcAprobados + porcRechazados));
 
   // --- DATOS PARA EL GRÁFICO DE DONA (Estado de presupuestos) ---
   const dataDona = [
     { name: "Aprobados", value: estadisticas.aceptados || 0, color: "#012950" },
-    { name: "Pendientes", value: estadisticas.pendientes || 0, color: "#4D7093" },
-    { name: "Rechazados", value: estadisticas.rechazados || 0, color: "#B3C2D1" },
+    {
+      name: "Pendientes",
+      value: estadisticas.pendientes || 0,
+      color: "#4D7093",
+    },
+    {
+      name: "Rechazados",
+      value: estadisticas.rechazados || 0,
+      color: "#B3C2D1",
+    },
   ];
 
   // --- PROCESAMIENTO DE DATOS PARA EL GRÁFICO (RECHARTS) ---
@@ -76,10 +86,9 @@ export default function Dashboard() {
 
   if (loading) {
     return (
+     
+        <Loading  text="Cargando modo dashboard..." />
       
-        <div className="w-full max-w-md mx-auto min-h-screen  flex items-center justify-center">
-        <Spinner />
-      </div>
     );
   }
 
@@ -89,7 +98,7 @@ export default function Dashboard() {
       <div className=" flex flex-col gap-6">
         {/* Cabecera / Título */}
         <div className="flex items-center gap-3">
-          <BackButton/>
+          <BackButton />
           <h1 className="text-2xl font-bold text-[#0B1001]">Dashboard</h1>
         </div>
 

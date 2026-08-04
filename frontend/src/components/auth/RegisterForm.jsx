@@ -11,11 +11,10 @@ import { registerSchema } from "@/lib/validations";
 import { Input } from "@/components/ui/Input";
 import { Terminos } from "@/components/auth/Terminos";
 import { registerService } from "@/services/authService";
-import Loading from "../ui/loading/Loading"
-
+import Loading from "../ui/loading/Loading";
+import Spinner from "../ui/loading/Spinner";
 
 export const RegisterForm = () => {
-
   const router = useRouter();
 
   const [mostrarTerminos, setMostrarTerminos] = useState(false);
@@ -26,83 +25,48 @@ export const RegisterForm = () => {
     handleSubmit,
     setError,
     watch,
-    formState: {
-      errors,
-      isSubmitting
-    }
-
+    formState: { errors, isSubmitting },
   } = useForm({
-
     resolver: zodResolver(registerSchema),
 
     defaultValues: {
-      terminos: false
-    }
-
+      terminos: false,
+    },
   });
-
-
 
   const password = watch("password") || "";
 
-
-
   const passwordInvalida =
     password.length > 0 &&
-    (
-      password.length < 8 ||
+    (password.length < 8 ||
       !/[A-Z]/.test(password) ||
       !/[a-z]/.test(password) ||
-      !/[0-9]/.test(password)
-    );
-
-
+      !/[0-9]/.test(password));
 
   const onSubmit = async (data) => {
-
     try {
-
-      const {
-        repetirPassword,
-        terminos,
-        ...userData
-      } = data;
-
+     
+      const { repetirPassword, terminos, ...userData } = data;
 
       await registerService(userData);
 
-
       router.push("/login");
-
-
     } catch (error) {
-
       setError("email", {
         type: "manual",
-        message:
-          error.response?.data?.message ||
-          "Error al registrar usuario"
+        message: error.response?.data?.message || "Error al registrar usuario",
       });
-
     }
-
   };
 
 
-
   return (
-
-<div className="w-full max-w-md min-h-[calc(100vh-5rem)] flex flex-col justify-center py-10 mt-[-1rem] mb-[-6rem]">
-
-      {isSubmitting && (
-        <Loading variant="overlay" text="Iniciando sesión..." />
-      )}
-
+    <div className="w-full max-w-md min-h-[calc(100vh-5rem)] flex flex-col justify-center py-10 mt-[-1rem] mb-[-6rem]">
+      {isSubmitting && <Loading variant="overlay" text="Registrando..." />}
 
       {/* Logo */}
 
       <div className="flex justify-center mb-6">
-
         <Image
           src="/logo.png"
           alt="Logo InnovaLab"
@@ -110,36 +74,21 @@ export const RegisterForm = () => {
           height={110}
           priority
         />
-
       </div>
-
-
 
       {/* Título */}
 
       <h1 className="text-4xl font-bold text-center text-[#0B376D] mb-8">
-
         Registrate
-
       </h1>
 
-
-
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="space-y-4"
-      >
-
-
-
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input
           label="Nombre"
           placeholder="Agustín"
           error={!!errors.nombre}
           {...register("nombre")}
         />
-
-
 
         <Input
           label="Apellido"
@@ -148,16 +97,12 @@ export const RegisterForm = () => {
           {...register("apellido")}
         />
 
-
-
         <Input
           label="Nombre de la Empresa"
           placeholder="Servicios Arg"
           error={!!errors.nombreEmprendimiento}
           {...register("nombreEmprendimiento")}
         />
-
-
 
         <Input
           label="Correo electrónico"
@@ -167,8 +112,6 @@ export const RegisterForm = () => {
           {...register("email")}
         />
 
-
-
         <Input
           label="Contraseña"
           type="password"
@@ -177,28 +120,16 @@ export const RegisterForm = () => {
           {...register("password")}
         />
 
+        {passwordInvalida && (
+          <div className="text-sm text-[#5B9B82] font-medium -mt-2">
+            <p>*Debe tener un mínimo de 8 caracteres.</p>
 
-
-        {
-          passwordInvalida && (
-
-            <div className="text-sm text-[#5B9B82] font-medium -mt-2">
-
-              <p>
-                *Debe tener un mínimo de 8 caracteres.
-              </p>
-
-              <p>
-                *Incluir una combinación de letras mayúsculas,
-                minúsculas y números.
-              </p>
-
-            </div>
-
-          )
-        }
-
-
+            <p>
+              *Incluir una combinación de letras mayúsculas, minúsculas y
+              números.
+            </p>
+          </div>
+        )}
 
         <Input
           label="Repetir contraseña"
@@ -208,21 +139,15 @@ export const RegisterForm = () => {
           {...register("repetirPassword")}
         />
 
-
-
         <label className="flex items-center gap-2 text-[#0B376D] font-medium">
-
           <input
             type="checkbox"
             className="accent-[#0B376D]"
             {...register("terminos")}
           />
 
-
           <span>
-
             Acepto los{" "}
-
             <button
               type="button"
               onClick={() => setMostrarTerminos(true)}
@@ -230,26 +155,10 @@ export const RegisterForm = () => {
             >
               términos y condiciones
             </button>
-
           </span>
 
-
-          {
-            errors.terminos && (
-
-              <span className="text-red-500">
-
-                *
-
-              </span>
-
-            )
-          }
-
-
+          {errors.terminos && <span className="text-red-500">*</span>}
         </label>
-
-
 
         <button
           type="submit"
@@ -264,49 +173,26 @@ export const RegisterForm = () => {
             hover:bg-[#4E8C74]
             disabled:opacity-50
           "
-        >
-
-          {
-            isSubmitting
-              ? "Registrando..."
-              : "Registrarse"
-          }
-
-
+        > 
+        {isSubmitting && <Spinner />}
+  {isSubmitting ? "Registrando..." : "Registrarse"}
         </button>
 
-
-
         <p className="text-center text-[17px] font-medium text-[#0B376D]">
-
           ¿Ya tenés cuenta?{" "}
-
           <Link
             href="/login"
             className="font-semibold text-[#5B9B82] hover:underline"
           >
-
             Iniciá sesión
-
           </Link>
-
-
         </p>
-
-
-
       </form>
 
-
-
       <Terminos
-  open={mostrarTerminos}
-  onClose={() => setMostrarTerminos(false)}
-/>
-
-
+        open={mostrarTerminos}
+        onClose={() => setMostrarTerminos(false)}
+      />
     </div>
-
   );
-
 };

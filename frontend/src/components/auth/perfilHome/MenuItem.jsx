@@ -4,7 +4,7 @@ import { ChevronRightIcon } from '@heroicons/react/24/outline';
 export const MenuItem = ({ icon: Icon, title, subtitle, href, isLast }) => (
   <Link 
     href={href} 
-    className={`flex w-full items-center gap-4 py-4 px-4 hover:bg-gray-50 transition-colors ${!isLast ? 'border-b border-gray-100' : ''}`}
+    className={`flex w-full items-center gap-4 py-4 px-4 transition-colors duration-200 hover:bg-blue-500/15 ${!isLast ? 'border-b border-gray-100' : ''}`}
   >
     <div className="shrink-0 text-[#0B376D] h-6 w-6">
       {Icon}

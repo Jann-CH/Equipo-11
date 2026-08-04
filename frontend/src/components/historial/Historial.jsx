@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import ButtonListadoCalendario from "./components/ButtonListadoCalendario";
 import FiltrosPresupuestos from "./components/FiltrosPresupuestos";
@@ -8,6 +8,7 @@ import CalendarioPresupuestos from "./components/CalendarioPresupuesto";
 import ClientesConPresupuesto from "../ui/ClientesConPresupuesto";
 import VerMasClientes from "@/components/ui/VerMasClientes";
 import Spinner from "@/components/ui/loading/Spinner";
+import Loading from "@/components/ui/loading/Loading";
 import { useFiltroPresupuestos } from "./hooks/useFiltroPresupuesto";
 
 export default function Historial() {
@@ -15,10 +16,11 @@ export default function Historial() {
 
   const [vistaActiva, setVistaActiva] = useState("listado");
 
-  const estadoUrlParam = searchParams.get("estado");
-  const [estadoInicialFiltrado, setEstadoInicialFiltrado] = useState(
-    estadoUrlParam === "Borradores" ? "Borrador" : estadoUrlParam,
-  );
+  // 💡 Memorizamos el estado inicial de la URL para que no cambie en cada render
+  const estadoInicialFiltrado = useMemo(() => {
+    const estadoUrlParam = searchParams.get("estado");
+    return estadoUrlParam === "Borradores" ? "Borrador" : estadoUrlParam || "";
+  }, [searchParams]);
 
   const {
     presupuestos,
@@ -37,6 +39,7 @@ export default function Historial() {
     setVistaActiva(nuevaVista);
     limpiarFiltros(); // Opcional: limpia los filtros al cambiar de pestaña
   };
+  
 
   return (
     <div>
@@ -58,10 +61,7 @@ export default function Historial() {
             estadoInicial={estadoInicialFiltrado}
           />
 
-          {loading && <Spinner />}
-          {error && <p className="text-red-500 text-center mt-4">{error}</p>}
-
-          {!loading && !error && (
+          
             <ClientesConPresupuesto
               presupuestos={presupuestos}
               loading={loading}
@@ -71,7 +71,7 @@ export default function Historial() {
               onCambiarPagina={cambiarPagina}
               esVistaCompleta={false}
             />
-          )}
+          
         </>
       ) : (
         /* Vista de Calendario: al hacer clic en un día, llama a actualizarFiltros con las fechas */

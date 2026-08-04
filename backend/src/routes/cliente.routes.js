@@ -4,6 +4,7 @@ import {
     getClientesController,
     getClienteByIdController,
     updateClienteController,
+    filterClientesController,
 } from "../controllers/cliente.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
@@ -15,6 +16,7 @@ router.use(authMiddleware);
 
 router.post("/", createClienteValidation, validate, createClienteController);
 router.get("/", getClientesController);
+router.get("/filtro",filterClientesController);
 router.get("/:id", getClienteByIdController);
 router.put("/update/:id",createClienteValidation, validate, updateClienteController);
 

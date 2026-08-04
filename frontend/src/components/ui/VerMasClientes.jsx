@@ -3,6 +3,7 @@
 import ClientesConPresupuesto from "@/components/ui/ClientesConPresupuesto";
 import { BackButton } from "@/components/ui/BackButton";
 import Spinner from "@/components/ui/loading/Spinner";
+import Loading from "@/components/ui/loading/Loading";
 import { useFiltroPresupuestos } from "@/components/historial/hooks/useFiltroPresupuesto";// Ajusta la ruta de tu hook si es necesario
 import Link from "next/link";
 
@@ -17,6 +18,10 @@ export default function TodosLosPresupuestosPage() {
     error,
     cambiarPagina,
   } = useFiltroPresupuestos(10);
+
+  if(loading) {
+    <Loading text="Cargando todos los presupuestos..." />
+   }
 
   return (
     <div >

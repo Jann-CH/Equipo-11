@@ -9,7 +9,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "@/lib/validations";
 import { Input } from "@/components/ui/Input";
 import { loginService } from "@/services/authService"
-import Loading from "../ui/loading/Loading"
+import Loading from "../ui/loading/Loading";
+import Spinner from "../ui/loading/Spinner";
+
 
 export const LoginForm = () => {
   const router = useRouter();
@@ -37,12 +39,14 @@ export const LoginForm = () => {
     }
   };
 
+  if (isSubmitting) {
+    return <Loading variant="overlay" text="Iniciando sesión..." />;
+  }
+
   return (
     <div className="min-h-[calc(100vh-5rem)] flex flex-col justify-center mt-[-1rem] mb-[-6rem] pb-8">
 
-      {isSubmitting && (
-        <Loading variant="overlay" text="Iniciando sesión..." />
-      )}
+      
 
       {/* Logo */}
       <div className="flex justify-center mb-8">
@@ -92,6 +96,7 @@ export const LoginForm = () => {
           disabled={isSubmitting}
           className="w-full h-14 rounded-full bg-[#5B9B82] text-white text-lg font-semibold transition hover:bg-[#4E8C74] disabled:opacity-50"
         >
+          {isSubmitting && <Spinner />}
           {isSubmitting ? "Autenticando..." : "Iniciar sesión"}
         </button>
 

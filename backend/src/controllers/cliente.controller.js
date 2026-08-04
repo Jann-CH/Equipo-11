@@ -2,7 +2,8 @@ import {
     createClienteService,
     getClientesByUsuarioService,
     getClienteByIdService,
-    updateClienteService
+    updateClienteService,
+    filterClientesService,
 } from "../services/cliente.service.js";
 
 export const createClienteController = async (req, res, next) => {
@@ -59,5 +60,29 @@ export const updateClienteController = async (req, res, next) => {
         });
     } catch (error) {
         next(error);
+    }
+}
+
+export const filterClientesController = async (req, res, next) => {
+    try{
+        const {pagina = 1, limite = 5, filtro = "{}"} = req.query;
+        const usuarioId = req.auth.id;
+        let filterObj = {};
+        try {
+            filterObj = JSON.parse(filtro);
+        } catch (err) {
+            return res.status(400).json({ success: false, message: "Filtro inválido" });
+        }
+        const data = await filterClientesService(
+            usuarioId, 
+            filterObj, 
+            parseInt(pagina), 
+            parseInt(limite));
+        res.status(200).json({ 
+            success: true, 
+            ...data 
+        });
+    }catch(err){
+        next(err);
     }
 }

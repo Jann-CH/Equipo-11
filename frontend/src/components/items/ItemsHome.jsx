@@ -11,6 +11,7 @@ import {
 
 import { ItemsForm } from "@/components/items/ItemsForm";
 import Loading from "@/components/ui/loading/Loading";
+import { BackButton } from "@/components/ui/BackButton";
 import { getItemsService } from "@/services/items.service";
 import { CircleAlert } from "lucide-react";
 
@@ -32,8 +33,8 @@ export const ItemsPage = () => {
       setItems(lista);
     } catch (error) {
       console.error("Error cargando items:", error);
-    }finally {
-      setLoadingItems(false); 
+    } finally {
+      setLoadingItems(false);
     }
   };
 
@@ -44,7 +45,9 @@ export const ItemsPage = () => {
   const itemsFiltrados = useMemo(() => {
     return items.filter((item) => {
       const coincideTipo = item.tipo === tipoSeleccionado;
-      const coincideBusqueda = item.nombre?.toLowerCase().includes(busqueda.toLowerCase());
+      const coincideBusqueda = item.nombre
+        ?.toLowerCase()
+        .includes(busqueda.toLowerCase());
 
       return coincideTipo && coincideBusqueda;
     });
@@ -64,12 +67,9 @@ export const ItemsPage = () => {
   }
 
   return (
-    <div className="bg-[#F8FAF9] min-h-screen p-5">
-
+    <div>
       <div className="flex items-center justify-between mb-8">
-        <button onClick={() => router.back()}>
-          <ArrowLeftIcon className="w-6 h-6 text-[#123B5D]" />
-        </button>
+        <BackButton/>
 
         <h1 className="text-2xl font-semibold text-black text-center">
           Mis productos y servicios
@@ -79,28 +79,28 @@ export const ItemsPage = () => {
       </div>
 
       <div className="grid grid-cols-2 gap-1 mb-5">
-  <button
-    onClick={() => setTipoSeleccionado("producto")}
-    className={`py-3 text-sm font-medium transition rounded-xl border ${
-      tipoSeleccionado === "producto"
-        ? "bg-[#003B6F] text-white border-[#003B6F]"
-        : "bg-white text-[#003B6F] border-gray-300"
-    }`}
-  >
-    Productos
-  </button>
+        <button
+          onClick={() => setTipoSeleccionado("producto")}
+          className={`py-3 text-sm font-medium transition rounded-xl border ${
+            tipoSeleccionado === "producto"
+              ? "bg-[#003B6F] text-white border-[#003B6F]"
+              : "bg-white text-[#003B6F] border-gray-300"
+          }`}
+        >
+          Productos
+        </button>
 
-  <button
-    onClick={() => setTipoSeleccionado("servicio")}
-    className={`py-3 text-sm font-medium transition rounded-xl border ${
-      tipoSeleccionado === "servicio"
-        ? "bg-[#003B6F] text-white border-[#003B6F]"
-        : "bg-white text-[#003B6F] border-gray-300"
-    }`}
-  >
-    Servicios
-  </button>
-</div>
+        <button
+          onClick={() => setTipoSeleccionado("servicio")}
+          className={`py-3 text-sm font-medium transition rounded-xl border ${
+            tipoSeleccionado === "servicio"
+              ? "bg-[#003B6F] text-white border-[#003B6F]"
+              : "bg-white text-[#003B6F] border-gray-300"
+          }`}
+        >
+          Servicios
+        </button>
+      </div>
 
       <div className="flex gap-3 mb-6">
         <div className="relative flex-1">
@@ -122,17 +122,15 @@ export const ItemsPage = () => {
       </div>
 
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-[#123B5D]">
-          Activos
-        </h2>
+        <h2 className="font-semibold text-[#123B5D]">Activos</h2>
 
         <button
-  onClick={() => {
-    setItemEditar(null);
-    setTipoFormulario(tipoSeleccionado);
-    setOpenForm(true);
-  }}
-  className="
+          onClick={() => {
+            setItemEditar(null);
+            setTipoFormulario(tipoSeleccionado);
+            setOpenForm(true);
+          }}
+          className="
     flex
     items-center
     gap-1
@@ -148,10 +146,10 @@ export const ItemsPage = () => {
     hover:text-white
     transition
   "
->
-  <PlusIcon className="w-5 h-5 stroke-[2.5]" />
-  Agregar
-</button>
+        >
+          <PlusIcon className="w-5 h-5 stroke-[2.5]" />
+          Agregar
+        </button>
       </div>
 
       <div className="space-y-3">
@@ -166,9 +164,7 @@ export const ItemsPage = () => {
               </div>
 
               <div>
-                <p className="font-semibold text-[#123B5D]">
-                  {item.nombre}
-                </p>
+                <p className="font-semibold text-[#123B5D]">{item.nombre}</p>
 
                 <p className="text-[#003B6F] mt-1 font-medium">
                   ${Number(item.precio).toLocaleString("es-AR")}
@@ -191,28 +187,29 @@ export const ItemsPage = () => {
         {itemsFiltrados.length === 0 && (
           <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
             <p className="text-gray-500">
-              No hay {tipoSeleccionado === "producto" ? "productos" : "servicios"} registrados.
+              No hay{" "}
+              {tipoSeleccionado === "producto" ? "productos" : "servicios"}{" "}
+              registrados.
             </p>
           </div>
         )}
       </div>
 
       <div className="mt-8">
-        <h2 className="font-semibold text-[#123B5D] mb-3">
-          Inactivos
-        </h2>
+        <h2 className="font-semibold text-[#123B5D] mb-3">Inactivos</h2>
 
         <div className="bg-[#EAF1F8] rounded-2xl p-4 text-sm text-[#123B5D] flex items-start gap-2">
-  <CircleAlert 
-    size={22}
-  strokeWidth={3}
-  className="text-[#123B5D] shrink-0 mt-1"
-  />
+          <CircleAlert
+            size={22}
+            strokeWidth={3}
+            className="text-[#123B5D] shrink-0 mt-1"
+          />
 
-  <p className="font-medium">
-    Los productos y servicios inactivos no estarán disponibles para nuevos presupuestos.
-  </p>
-</div>
+          <p className="font-medium">
+            Los productos y servicios inactivos no estarán disponibles para
+            nuevos presupuestos.
+          </p>
+        </div>
       </div>
 
       <ItemsForm
@@ -229,7 +226,6 @@ export const ItemsPage = () => {
           loadItems();
         }}
       />
-
     </div>
   );
 };

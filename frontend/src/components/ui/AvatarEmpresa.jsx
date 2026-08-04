@@ -23,7 +23,7 @@ export const AvatarEmpresa = ({ user, className = "h-16 w-16", onEdit }) => {
               className="object-cover w-full h-full bg-white"
             />
           ) : (
-            // Calculamos el tamaño del font proporcionalmente si es necesario, 
+            // Calculamos el tamaño del font proporcionalmente si es necesario,
             // o lo dejamos fijo. "text-xl" suele quedar bien en la mayoría de casos.
             <span className="text-xl">
               {user?.nombre?.[0]} {user?.apellido?.[0]}
@@ -39,18 +39,29 @@ export const AvatarEmpresa = ({ user, className = "h-16 w-16", onEdit }) => {
               e.stopPropagation();
               onEdit();
             }}
-            className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm"
+            className="group absolute -bottom-1 -right-1 bg-white p-1 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm cursor-pointer"
           >
-            <PencilSquareIcon className="h-4 w-4 text-[#0B376D]" />
+            <PencilSquareIcon className="h-4 w-4 text-[#0B376D] transition-transform duration-200 group-hover:scale-125" />
           </button>
         )}
       </div>
 
       {/* Modal Zoom */}
       {isZoomed && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setIsZoomed(false)}>
-          <button className="absolute top-5 right-5 text-white"><XMarkIcon className="h-10 w-10" /></button>
-          <Image src={user.logo_url} alt="Logo" width={500} height={500} className="rounded-lg" />
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setIsZoomed(false)}
+        >
+          <button className="absolute top-5 right-5 text-white">
+            <XMarkIcon className="h-10 w-10" />
+          </button>
+          <Image
+            src={user.logo_url}
+            alt="Logo"
+            width={500}
+            height={500}
+            className="rounded-lg"
+          />
         </div>
       )}
     </>

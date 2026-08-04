@@ -112,5 +112,53 @@ export const updateClienteRepository = async (usuario_id, updateData) => {
     return result.rows[0];
 };
 
+export const filterClientesRepository = async (usuarioId, filtros, limite, skip) => {
+    // 1. Condiciones base para la tabla clientes
+    const conditions = ["usuario_id = $1", "deleted_at IS NULL"];
+    const values = [usuarioId];
 
+    // 2. Filtro de búsqueda (nombre, apellido o email)
+    if (filtros?.busqueda) {
+        conditions.push(`(nombre ILIKE $${values.length + 1} OR apellido ILIKE $${values.length + 1} OR email ILIKE $${values.length + 1})`);
+        values.push(`%${filtros.busqueda}%`);
+    }
 
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    // 3. Ordenamiento dinámico
+    let ordenSQL = "ORDER BY nombre ASC"; // Por defecto
+    if (filtros?.orden === "antiguo") {
+        ordenSQL = "ORDER BY created_at ASC";
+    } else if (filtros?.orden === "reciente") {
+        ordenSQL = "ORDER BY created_at DESC";
+    }
+
+    // 4. Consulta para traer los datos paginados
+    const queryData = `
+        SELECT id, nombre, apellido, email, cuil_cuit, telefono, created_at
+        FROM clientes
+        ${whereClause}
+        ${ordenSQL}
+        LIMIT $${values.length + 1} OFFSET $${values.length + 2};
+    `;
+
+    // 5. Consulta para obtener el total de registros con los mismos filtros
+    const queryCount = `
+        SELECT COUNT(*) as total
+        FROM clientes
+        ${whereClause};
+    `;
+
+    // Ejecutamos ambas consultas pasando los parámetros de paginación al final de data
+    const [resultData, resultCount] = await Promise.all([
+        pool.query(queryData, [...values, limite, skip]),
+        pool.query(queryCount, values) // El count solo necesita las condiciones de búsqueda
+    ]);
+
+    const totalRegistros = parseInt(resultCount.rows[0].total, 10);
+
+    return {
+        data: resultData.rows,
+        total: totalRegistros
+    };
+};

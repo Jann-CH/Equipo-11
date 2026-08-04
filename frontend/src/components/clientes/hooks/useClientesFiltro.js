@@ -1,12 +1,12 @@
 "use client";
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { getPresupuestosFiltroService } from "@/services/presupuesto.service";
 
-export function useFiltroPresupuestos(initialLimite = 10, initialEstado = "") {
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { getClientesFiltroService } from "@/services/clientes.service";  
+
+export function useClientesFiltro(initialLimite = 10, initialEstado = "") {
     const [pagina, setPagina] = useState(1);
     const [limite, setLimite] = useState(initialLimite);
-    
-    // 1. Inicializamos con un string primitivo o mantenemos la estructura estable
+
     const [estado, setEstado] = useState(initialEstado || "");
     const [otrosFiltros, setOtrosFiltros] = useState({});
     
@@ -14,59 +14,63 @@ export function useFiltroPresupuestos(initialLimite = 10, initialEstado = "") {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // 2. Estabilizamos el objeto de filtros usando useMemo
-    const filtros = useMemo(() => ({
+    const filtros = useMemo(() => ({ 
         ...(estado ? { estado } : {}),
-        ...otrosFiltros
-    }), [estado, otrosFiltros]);
+        ...otrosFiltros 
+    }), [estado, otrosFiltros]);    
 
-    const cargarPresupuestos = useCallback(async (p, l, f) => {
+    const cargarClientes = useCallback(async (p, l, f) => {
         try {
             setLoading(true);
             setError(null);
-            const res = await getPresupuestosFiltroService({
+            
+            const res = await getClientesFiltroService({
                 pagina: p,
                 limite: l,
                 filtro: JSON.stringify(f),
             });
+            
             setResultado(res);
+
         } catch (err) {
-            setError(err.response?.data?.message || "Error al cargar los presupuestos");
+            setError(err);
         } finally {
             setLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        cargarPresupuestos(pagina, limite, filtros);
-    }, [pagina, limite, filtros, cargarPresupuestos]);
-
+        cargarClientes(pagina, limite, filtros);
+    }, [pagina, limite, filtros, cargarClientes]);
+    
     const actualizarFiltros = (nuevosFiltros) => {
-        // Si vienen nuevos filtros que afectan al estado principal, los manejamos bien
         if ("estado" in nuevosFiltros) {
             setEstado(nuevosFiltros.estado);
-        }
+        }   
+
+        // 💡 Vital: Guardamos los demás filtros (busqueda, orden, etc.)
         setOtrosFiltros((prev) => ({
             ...prev,
             ...nuevosFiltros,
         }));
-        setPagina(1);
-    };
+
+        setPagina(1); // Siempre volvemos a la página 1 al aplicar un filtro nuevo
+    }
 
     const limpiarFiltros = () => {
         setEstado("");
         setOtrosFiltros({});
         setPagina(1);
-    };
+    }       
 
     const cambiarPagina = (nuevaPagina) => {
         setPagina(nuevaPagina);
-    };
+    }
 
     return {
-        presupuestos: resultado.data || [],
+        clientes: resultado.data || [],
         totalPaginas: resultado.meta?.totalPaginas || 1,
-        totalRegistros: resultado.meta?.total || 0,
+        totalRegistros: resultado.meta?.total || 0, // 💡 Corregido con la "s" final
         paginaActual: pagina,
         limite,
         loading,

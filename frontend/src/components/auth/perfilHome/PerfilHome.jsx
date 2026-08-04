@@ -76,10 +76,10 @@ export const PerfilHome = () => {
             </div>
           </div>
 
-          <div className="mt-4 flex items-center justify-between border-t pt-4">
+          <div className="mt-4 flex items-center justify-between border-t pt-4 ">
             <Link
               href={"/perfil/rubroCargo"}
-              className="flex items-center gap-4 w-full py-1" // <--- Añadimos w-full y subimos el gap a 4
+              className="flex items-center gap-4 w-full p-2 rounded-xl transition-colors duration-200 hover:bg-blue-500/15" // <--- Añadimos w-full y subimos el gap a 4
             >
               <div className="shrink-0 h-6 w-6">
                 <BuildingOfficeIcon className="h-8 w-8 text-teal-800 bg-teal-100 p-1.5 rounded-lg" />

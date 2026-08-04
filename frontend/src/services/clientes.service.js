@@ -29,3 +29,10 @@ export const updateClienteService = async (clienteId, clienteData) => {
 
   return data;
 };
+
+export const getClientesFiltroService = async (params = {}) => {
+  const { data } = await api.get("/clientes/filtro", { 
+    params
+  });
+  return data;
+};

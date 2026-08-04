@@ -3,6 +3,7 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { Calendar } from "lucide-react";
 import Spinner from "@/components/ui/loading/Spinner";
+import Loading from "@/components/ui/loading/Loading";
 
 function calcularDiasRestantes(fechaVencimientoString) {
   if (!fechaVencimientoString) return "";
@@ -48,6 +49,7 @@ export default function ClienteConPresupuesto({
   esVistaCompleta = false,
   onVerMasClick,
 }) {
+
   return (
     <div className="flex flex-col gap-2 flex-1 my-1">
       {/* Cabecera */}
@@ -80,7 +82,7 @@ export default function ClienteConPresupuesto({
             <Link
               key={item.id}
               href={`/historial/${item.id}`}
-              className="flex justify-between items-center bg-white border border-gray-100 shadow-sm p-3 rounded-[16px] transition-all hover:shadow-md cursor-pointer"
+              className="flex justify-between items-center bg-white border border-gray-100 shadow-sm p-3 rounded-[16px] transition-colors duration-200 hover:bg-blue-500/15"
             >
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-[#0B376D] text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-inner">
