@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { Input } from "@/components/ui/Input";
+import { BackButton } from "@/components/ui/BackButton";
 
 export const ForgotPasswordForm = () => {
   const [email, setEmail] = useState("");
@@ -23,7 +24,7 @@ export const ForgotPasswordForm = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -41,8 +42,16 @@ export const ForgotPasswordForm = () => {
     <FadeIn>
       <div className="max-w-md mx-auto">
         <section className="bg-white rounded-3xl border p-6 shadow-sm">
-          <h1 className="text-3xl font-bold text-[#0B376D]">Recuperar contraseña</h1>
-          <p className="text-gray-500 mt-2 mb-6">Ingresá tu correo para continuar.</p>
+          <div className="flex items-center gap-4">
+            <BackButton />
+            <h3 className="text-3xl font-bold text-[#0B376D]">
+              Recuperar contraseña
+            </h3>
+          </div>
+
+          <p className="text-gray-500 mt-2 mb-6">
+            Ingresá tu correo para continuar.
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <Input
@@ -54,10 +63,14 @@ export const ForgotPasswordForm = () => {
             />
 
             {message && (
-              <div className="bg-green-50 text-green-700 rounded-xl p-3 text-sm">{message}</div>
+              <div className="bg-green-50 text-green-700 rounded-xl p-3 text-sm">
+                {message}
+              </div>
             )}
             {error && (
-              <div className="bg-red-50 text-red-600 rounded-xl p-3 text-sm">{error}</div>
+              <div className="bg-red-50 text-red-600 rounded-xl p-3 text-sm">
+                {error}
+              </div>
             )}
 
             <button

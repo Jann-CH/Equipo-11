@@ -38,7 +38,7 @@ export const LoginForm = () => {
   };
 
   return (
-    <div className="w-full max-w-md relative">
+    <div className="min-h-[calc(100vh-5rem)] flex flex-col justify-center mt-[-1rem] mb-[-6rem] pb-8">
 
       {isSubmitting && (
         <Loading variant="overlay" text="Iniciando sesión..." />

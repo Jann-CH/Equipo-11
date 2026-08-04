@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FadeIn } from "@/components/ui/FadeIn";
 import { Input } from "@/components/ui/Input";
 import { updatePasswordService } from "@/services/authService";
+import { BackButton } from "@/components/ui/BackButton";
 
 export const ChangePasswordForm = () => {
   const router = useRouter();
@@ -60,24 +60,32 @@ export const ChangePasswordForm = () => {
         newPassword: form.newPassword,
       });
 
-      setSuccessMessage(response.message || "Contraseña actualizada correctamente.");
+      setSuccessMessage(
+        response.message || "Contraseña actualizada correctamente.",
+      );
       setForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
 
       setTimeout(() => router.push("/perfil"), 1500);
     } catch (error) {
-      setErrorMessage(error.response?.data?.message || "No se pudo actualizar la contraseña.");
+      setErrorMessage(
+        error.response?.data?.message || "No se pudo actualizar la contraseña.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <FadeIn>
+    <>
       <section className="rounded-3xl bg-white border border-gray-100 shadow-sm p-6">
-        <h1 className="text-2xl font-bold text-[#0B376D]">Seguridad</h1>
-        <p className="mt-2 mb-6 text-sm text-gray-500">
-          Cambiá tu contraseña para mantener segura tu cuenta.
-        </p>
+        <div className="flex items-center gap-4">
+          <BackButton />
+          <h1 className="text-2xl font-bold text-[#0B376D]">Seguridad</h1>
+        </div>
+          <p className="mt-2 mb-6 text-sm text-gray-500">
+            Cambiá tu contraseña para mantener segura tu cuenta.
+          </p>
+        
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
@@ -134,6 +142,6 @@ export const ChangePasswordForm = () => {
           </button>
         </form>
       </section>
-    </FadeIn>
+    </>
   );
 };
