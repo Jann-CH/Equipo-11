@@ -13,7 +13,7 @@ import { useFiltroPresupuestos } from "./hooks/useFiltroPresupuesto";
 export default function Historial() {
 
   const searchParams = useSearchParams();
-  const estadoUrl = searchParams.get("estado");
+  let estadoUrl = searchParams.get("estado");
   const [vistaActiva, setVistaActiva] = useState("listado");
 
   if (estadoUrl === "Borradores") {
