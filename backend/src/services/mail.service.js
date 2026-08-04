@@ -1,26 +1,25 @@
-import dns from "node:dns";
-import nodemailer from "nodemailer";
+import sgMail from "@sendgrid/mail";
 
-dns.setDefaultResultOrder("ipv4first");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  family: 4,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
-
-export const sendMailService = async ({ to, subject, text }) => {
-  const info = await transporter.sendMail({
-    from: `"Valora" <${process.env.EMAIL_USER}>`,
+export const sendMailService = async ({ to, subject, text, html }) => {
+  const msg = {
     to,
+    from: {
+      email: process.env.EMAIL_FROM,
+      name: "Valora",
+    },
     subject,
     text,
-  });
+    html,
+    trackingSettings: {
+      clickTracking: {
+        enable: false,
+      },
+    },
+  };
 
-  return info;
+  await sgMail.send(msg);
+
+  return true;
 };
