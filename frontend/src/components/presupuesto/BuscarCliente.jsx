@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, UserRoundPlus } from "lucide-react";
 import Spinner from "@/components/ui/loading/Spinner";
+import { Input } from "@/components/ui/Input";
 
 import { getClientesService } from "@/services/clientes.service";
 
@@ -90,14 +91,14 @@ export const BuscarCliente = ({
         <span className="text-red-500 ml-1">*</span>
       </label>
 
-      <div className="flex items-center justify-between w-full">
+      <div className="flex items-center justify-between w-full gap-2">
         <div className="relative w-[320px]">
           <Search
             size={16}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
           />
 
-          <input
+          <Input
             value={busqueda}
             onFocus={() => setMostrarLista(true)}
             onChange={(e) => {
@@ -106,20 +107,15 @@ export const BuscarCliente = ({
             }}
             placeholder="Buscar o crear cliente"
             className="
-              w-full
-              h-10
-              rounded-xl
-              border
-              border-gray-300
-              pl-9
-              pr-3
-              text-xs
-              text-[#123B5D]
-              outline-none
-              focus:border-[#528A72]
-              focus:ring-2
-              focus:ring-[#528A72]/20
-            "
+        h-10
+        pl-9
+        pr-3
+        text-xs
+        text-[#123B5D]
+        border-gray-300
+        focus:border-[#528A72]
+        focus:ring-[#528A72]/20
+      "
           />
         </div>
 

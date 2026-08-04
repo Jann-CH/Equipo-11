@@ -26,7 +26,7 @@ export const PresupuestoPage = () => {
   }
 
   return (
-    <div className="bg-white min-h-screen px-7 py-5">
+    <div >
       <div className="flex items-center justify-between mb-10">
         <button onClick={() => router.back()}>
           <ArrowLeftIcon className="w-6 h-6 text-[#123B5D]" />

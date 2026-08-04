@@ -24,7 +24,7 @@ export default function Dashboard() {
   const {
     presupuestos,
     loading: loadingPresupuestos,  
-  } = useFiltroPresupuestos(5);
+  } = useFiltroPresupuestos(1);
 
   const estadisticas = data?.estadisticas || {};
 
@@ -76,16 +76,16 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="w-full max-w-md mx-auto min-h-screen bg-gray-50 flex items-center justify-center">
+      
         <Spinner />
-      </div>
+      
     );
   }
 
   return (
-    <div className="w-full max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col justify-between pb-28 font-sans">
+    <div>
       {/* Contenido principal */}
-      <div className="px-4 py-4 flex flex-col gap-6">
+      <div className=" flex flex-col gap-6">
         {/* Cabecera / Título */}
         <div className="flex items-center gap-3">
           <BackButton/>

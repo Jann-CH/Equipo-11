@@ -44,7 +44,7 @@ export default function Dashboard() {
     <>
       {/* Quitamos max-w-xl/md y usamos w-full con un padding lateral fluido (px-4 o px-5) */}
 
-      <div className="min-h-screen bg-gray-50 pb-24 p-4 max-w-md mx-auto">
+      <div >
        
           <DateAndImg
             nombre={estadisticas.usuarioNombre}
