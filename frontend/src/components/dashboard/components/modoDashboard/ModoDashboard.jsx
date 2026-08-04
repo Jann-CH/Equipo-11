@@ -77,8 +77,9 @@ export default function Dashboard() {
   if (loading) {
     return (
       
+        <div className="w-full max-w-md mx-auto min-h-screen  flex items-center justify-center">
         <Spinner />
-      
+      </div>
     );
   }
 
