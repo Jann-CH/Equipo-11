@@ -72,3 +72,16 @@ export const updateUserLogoService = async (formData) => {
   });
   return data;
 }
+
+export const updatePasswordService = async (
+    passwordData
+) => {
+
+    const { data } =
+        await api.put(
+            "/auth/updatePassword",
+            passwordData
+        );
+
+    return data;
+};

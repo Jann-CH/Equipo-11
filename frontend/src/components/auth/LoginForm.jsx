@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { loginSchema } from "@/lib/validations";
 import { Input } from "@/components/ui/Input";
-import { loginService } from "@/services/authService";
+import { loginService } from "@/services/authService"
 import Loading from "../ui/loading/Loading"
 
 export const LoginForm = () => {
@@ -38,8 +38,7 @@ export const LoginForm = () => {
   };
 
   return (
-    
-    <div className="min-h-[calc(100vh-5rem)] flex flex-col justify-center mt-[-1rem] mb-[-6rem] pb-8">
+    <div className="w-full max-w-md relative">
 
       {isSubmitting && (
         <Loading variant="overlay" text="Iniciando sesión..." />
@@ -80,12 +79,12 @@ export const LoginForm = () => {
         />
 
         <div className="flex justify-end -mt-3">
-          <button
-            type="button"
-            className="text-[15px] font-medium text-[#6B7280] hover:text-[#4B5563]"
-          >
-            Olvidé mi contraseña
-          </button>
+          <Link
+  href="/forgot-password"
+  className="text-[15px] font-medium text-[#6B7280] hover:text-[#4B5563]"
+>
+  Olvidé mi contraseña
+</Link>
         </div>
 
         <button

@@ -30,6 +30,25 @@ export const runMigration = async () => {
           deleted_at TIMESTAMP
       );
 
+      -- TABLA: password_resets
+CREATE TABLE IF NOT EXISTS public.password_resets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    user_id UUID NOT NULL,
+
+    token TEXT NOT NULL UNIQUE,
+
+    expires_at TIMESTAMP NOT NULL,
+
+    created_at TIMESTAMP DEFAULT NOW(),
+
+    CONSTRAINT fk_password_reset_usuario
+        FOREIGN KEY (user_id)
+        REFERENCES usuarios(id)
+        ON DELETE CASCADE
+);
+
+
       -- 2. TABLA: clientes
       CREATE TABLE IF NOT EXISTS public.clientes (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -119,7 +138,7 @@ export const runMigration = async () => {
       );
     `);
 
-    console.log("¡Todas las tablas (usuarios, clientes, items, presupuestos, detalle) están listas y sincronizadas!");
+    console.log("¡Todas las tablas (usuarios, password_resets, clientes, items, presupuestos, detalle) están listas y sincronizadas!");
   } catch (error) {
     console.error("Error al sincronizar las tablas en la base de datos:", error);
   }

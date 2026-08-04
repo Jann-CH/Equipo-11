@@ -58,6 +58,7 @@ export const findUserByIdRepository = async (id) => {
         SELECT
             id,
             email,
+            password_hash,
             nombre, 
             apellido,
             nombre_emprendimiento,
@@ -347,3 +348,28 @@ export const updateUserLogoRepository = async ({
     return result.rows[0];
 }
 
+export const updatePasswordRepository = async (
+    id,
+    passwordHash
+) => {
+
+    const query = `
+        UPDATE usuarios
+        SET 
+            password_hash = $1,
+            updated_at = NOW()
+        WHERE id = $2
+        AND deleted_at IS NULL
+        RETURNING id;
+    `;
+
+    const result = await pool.query(
+        query,
+        [
+            passwordHash,
+            id
+        ]
+    );
+
+    return result.rows[0];
+};
