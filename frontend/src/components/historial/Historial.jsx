@@ -11,14 +11,14 @@ import Spinner from "@/components/ui/loading/Spinner";
 import { useFiltroPresupuestos } from "./hooks/useFiltroPresupuesto";
 
 export default function Historial() {
-
   const searchParams = useSearchParams();
-  let estadoUrl = searchParams.get("estado");
+
   const [vistaActiva, setVistaActiva] = useState("listado");
 
-  if (estadoUrl === "Borradores") {
-    estadoUrl = "Borrador"; 
-  }
+  const estadoUrlParam = searchParams.get("estado");
+  const [estadoInicialFiltrado, setEstadoInicialFiltrado] = useState(
+    estadoUrlParam === "Borradores" ? "Borrador" : estadoUrlParam,
+  );
 
   const {
     presupuestos,
@@ -30,15 +30,13 @@ export default function Historial() {
     cambiarPagina,
     actualizarFiltros,
     limpiarFiltros,
-  } = useFiltroPresupuestos(5, estadoUrl);
+  } = useFiltroPresupuestos(5, estadoInicialFiltrado);
 
   // Función para manejar el cambio de vista y limpiar/ajustar filtros si es necesario
   const cambiarVista = (nuevaVista) => {
     setVistaActiva(nuevaVista);
     limpiarFiltros(); // Opcional: limpia los filtros al cambiar de pestaña
   };
-
- 
 
   return (
     <div>
@@ -57,7 +55,7 @@ export default function Historial() {
           <FiltrosPresupuestos
             onFiltrar={actualizarFiltros}
             totalRegistros={totalRegistros}
-            estadoInicial={estadoUrl}
+            estadoInicial={estadoInicialFiltrado}
           />
 
           {loading && <Spinner />}
