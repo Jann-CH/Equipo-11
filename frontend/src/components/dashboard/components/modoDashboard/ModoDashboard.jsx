@@ -24,7 +24,7 @@ export default function Dashboard() {
   const {
     presupuestos,
     loading: loadingPresupuestos,  
-  } = useFiltroPresupuestos(1);
+  } = useFiltroPresupuestos(4);
 
   const estadisticas = data?.estadisticas || {};
 
@@ -83,7 +83,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div>
+    <>
       {/* Contenido principal */}
       <div className=" flex flex-col gap-6">
         {/* Cabecera / Título */}
@@ -283,6 +283,6 @@ export default function Dashboard() {
           </div>
         </section>
       </div>
-    </div>
+    </>
   );
 }

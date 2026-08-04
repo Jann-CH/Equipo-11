@@ -22,6 +22,8 @@ export default function FiltrosPresupuestos({ onFiltrar, totalRegistros, estadoI
     fechaFin: "",
   });
 
+  console.log("2- Estado inicial en FiltrosPresupuestos:", estadoInicial); // Depuración: muestra el estado inicial recibido como prop
+
   useEffect(() => {
     if (estadoInicial) {
       const nuevosFiltros = {
