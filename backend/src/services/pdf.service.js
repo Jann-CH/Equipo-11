@@ -2,7 +2,7 @@ import PDFDocument from "pdfkit";
 import axios from "axios";
 
 const AZUL = "#123B5D";
-const CELESTE = "#DDEFF8";
+const GRIS = "#E8E8E8";
 
 const formatearFecha = (fecha) => {
     if (!fecha) return "-";
@@ -18,86 +18,84 @@ const dinero = (valor) => {
 };
 
 export const generarPresupuestoPDF = async (presupuesto) => {
-
     let logoBuffer = null;
 
     if (presupuesto.logo_url) {
         try {
-            const response = await axios.get(presupuesto.logo_url, { responseType: "arraybuffer" });
+            const response = await axios.get(presupuesto.logo_url, {
+                responseType: "arraybuffer",
+            });
             logoBuffer = Buffer.from(response.data);
-        } catch (error) {
-            console.log("Error cargando logo:", error.message);
-        }
+        } catch (error) {}
     }
 
     return new Promise((resolve) => {
-
         const doc = new PDFDocument({ size: "A4", margin: 40 });
         const buffers = [];
 
         doc.on("data", (chunk) => buffers.push(chunk));
         doc.on("end", () => resolve(Buffer.concat(buffers)));
 
+        const logoX = 435;
+        const logoY = 40;
+        const logoWidth = 150;
+        const logoHeight = 100;
+
         if (logoBuffer) {
-            doc.image(logoBuffer, 40, 40, { width: 130, fit: [130, 60] });
+            doc.image(logoBuffer, logoX, logoY, {
+                fit: [logoWidth, logoHeight],
+                align: "center",
+                valign: "center",
+            });
         }
 
-        const bloqueX = 340;
-        const bloqueWidth = 160;
+        doc.fillColor("black").font("Helvetica-Bold").fontSize(24).text("PRESUPUESTO", 40, 45);
 
-        doc
-            .fillColor("black")
-            .font("Helvetica-Bold")
-            .fontSize(24)
-            .text("PRESUPUESTO", 300, 45, { width: 220, align: "right" });
+        doc.font("Helvetica").fontSize(10)
+            .text(`# ${presupuesto.numero || "-"}`, 40, 78)
+            .text(`Fecha: ${formatearFecha(presupuesto.fecha)}`, 40, 105)
+            .text(`Vencimiento: ${formatearFecha(presupuesto.fecha_vencimiento)}`, 40, 123);
 
-        doc
-            .fillColor("black")
-            .font("Helvetica")
-            .fontSize(10)
-            .text(`# ${presupuesto.numero || "-"}`, 300, 82, { width: 220, align: "right" });
+        doc.strokeColor("#ECECEC").lineWidth(0.5).moveTo(40, 150).lineTo(555, 150).stroke();
 
-        doc.text(`Fecha: ${formatearFecha(presupuesto.fecha)}`, bloqueX, 105, { width: bloqueWidth, align: "left" });
-        doc.text(`Vencimiento: ${formatearFecha(presupuesto.fecha_vencimiento)}`, bloqueX, 123, { width: bloqueWidth, align: "left" });
+        doc.fillColor("black").font("Helvetica-Bold").fontSize(12).text("Cliente", 40, 165);
 
-        doc
-            .fillColor("black")
-            .font("Helvetica-Bold")
-            .fontSize(12)
-            .text(presupuesto.nombre_emprendimiento || "Empresa", 40, 150);
+        doc.font("Helvetica").fontSize(10)
+            .text(`${presupuesto.cliente_nombre || "-"} ${presupuesto.cliente_apellido || ""}`, 40, 185)
+            .text(`${presupuesto.cliente_telefono || "Tel: -"}`, 40, 203)
+            .text(`${presupuesto.cliente_email || "Email: -"}`, 40, 221);
 
-        doc
-            .fillColor("black")
-            .font("Helvetica")
-            .fontSize(10)
-            .text(`${presupuesto.usuario_nombre || ""} ${presupuesto.usuario_apellido || ""}`, 40, 170)
-            .text(`Tel: ${presupuesto.usuario_telefono || "-"}`, 40, 188)
-            .text(`Email: ${presupuesto.usuario_email || "-"}`, 40, 206);
+        const empresa = presupuesto.nombre_emprendimiento || "Empresa";
+        const nombre = `${presupuesto.usuario_nombre || ""} ${presupuesto.usuario_apellido || ""}`;
+        const telefono = `${presupuesto.usuario_telefono || "Tel: -"}`;
+        const email = `${presupuesto.usuario_email || "Email: -"}`;
 
-        doc
-            .fillColor("black")
-            .font("Helvetica-Bold")
-            .fontSize(12)
-            .text("CLIENTE", 40, 250);
+        doc.font("Helvetica-Bold").fontSize(12);
+        const anchoEmpresa = doc.widthOfString(empresa);
 
-        doc
-            .fillColor("black")
-            .font("Helvetica")
-            .fontSize(10)
-            .text(`${presupuesto.cliente_nombre || "-"} ${presupuesto.cliente_apellido || ""}`, 40, 270)
-            .text(`Tel: ${presupuesto.cliente_telefono || "-"}`, 40, 288)
-            .text(`Email: ${presupuesto.cliente_email || "-"}`, 40, 306);
+        doc.font("Helvetica").fontSize(10);
 
-        let y = 350;
+        const anchoNombre = doc.widthOfString(nombre);
+        const anchoTelefono = doc.widthOfString(telefono);
+        const anchoEmail = doc.widthOfString(email);
 
-        doc.strokeColor("#70B7E8").lineWidth(0.9).moveTo(10, y).lineTo(585, y).stroke();
+        const anchoMaximo = Math.max(anchoEmpresa, anchoNombre, anchoTelefono, anchoEmail);
+        const xDerecha = 555 - anchoMaximo;
+
+        doc.fillColor("black").font("Helvetica-Bold").fontSize(12).text(empresa, xDerecha, 165);
+
+        doc.font("Helvetica").fontSize(10)
+            .text(nombre, xDerecha, 185)
+            .text(telefono, xDerecha, 203)
+            .text(email, xDerecha, 221);
+
+        let y = 285;
+
+        doc.strokeColor("GRIS").lineWidth(0.9).moveTo(40, y).lineTo(555, y);
 
         y += 15;
 
-        doc
-            .fillColor("black")
-            .font("Helvetica-Bold")
-            .fontSize(9)
+        doc.fillColor("GRIS").font("Helvetica-Bold").fontSize(9)
             .text("Servicio", 45, y)
             .text("Precio", 280, y)
             .text("Cantidad", 385, y)
@@ -105,48 +103,47 @@ export const generarPresupuestoPDF = async (presupuesto) => {
 
         y += 18;
 
-        doc.strokeColor("#70B7E8").moveTo(40, y).lineTo(535, y).stroke();
+        doc.strokeColor("GRIS").moveTo(40, y).lineTo(555, y).stroke();
 
         y += 15;
 
         doc.fillColor("#333").font("Helvetica").fontSize(9);
 
         presupuesto.detalles.forEach((item) => {
-            doc.text(item.nombre_item, 45, y, { width: 220 });
+            doc.text(item.nombre_item, 45, y, { width: 210 });
             doc.text(dinero(item.precio_unitario), 280, y);
             doc.text(String(item.cantidad), 402, y);
             doc.text(dinero(item.subtotal), 490, y);
             y += 25;
         });
 
-        doc.strokeColor("#70B7E8").moveTo(10, y).lineTo(585, y).stroke();
+        doc.strokeColor("GRIS").moveTo(40, y).lineTo(555, y).stroke();
 
         y += 25;
 
-        doc.fillColor(CELESTE).rect(370, y, 170, 35).fill();
+        const totalTexto = dinero(presupuesto.total);
 
-        doc
-            .fillColor(AZUL)
-            .font("Helvetica-Bold")
-            .fontSize(13)
-            .text("Total:", 380, y + 10);
+        doc.font("Helvetica-Bold").fontSize(12);
 
-        doc.text(dinero(presupuesto.total), 470, y + 10);
+        const anchoLabel = doc.widthOfString("TOTAL:");
+        const anchoTotal = doc.widthOfString(totalTexto);
+        const padding = 12;
+        const anchoCaja = anchoLabel + anchoTotal + padding * 3;
+        const xCaja = 540 - anchoCaja;
 
-        doc
-            .fillColor("black")
-            .font("Helvetica-Bold")
-            .fontSize(11)
-            .text("Observaciones:", 40, 700);
+        doc.fillColor("#E8E8E8").rect(xCaja, y, anchoCaja, 30).fill();
 
-        doc
-            .fillColor("black")
-            .font("Helvetica-Bold")
-            .fontSize(11)
-            .text(presupuesto.observaciones || "Sin observaciones.", 128, 700, { width: 415 });
+        doc.fillColor("#333")
+            .text("TOTAL:", xCaja + padding, y + 9)
+            .text(totalTexto, xCaja + padding + anchoLabel + 18, y + 9);
+
+        const yObs = 770;
+
+        doc.font("Helvetica-Bold").fontSize(10).fillColor("#444")
+            .text("Observaciones:", 40, yObs, { continued: true });
+
+        doc.font("Helvetica").text(` ${presupuesto.observaciones || "Sin observaciones."}`);
 
         doc.end();
-
     });
-
 };
