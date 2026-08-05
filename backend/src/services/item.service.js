@@ -39,20 +39,15 @@ export const updateItemService = async (usuarioId, itemId, updateData) => {
     if (!itemDate) {
         throw new AppError("El item no existe o no pertenece a este usuario", 404);
     }
-    // 2. REGLA DE NEGOCIO: ¿Está activo?
-    // Si el campo no existe, o si es 'false', impedimos la actualización.
-    if (itemDate.activo !== true) {
-        throw new AppError("Para realizar cambios, el ítem debe estar activo (true).", 400);
-    }
 
-    // 3. Normalización: Aseguramos que los datos del item sean correctos antes de enviarlos al repositorio
+    // 2. Normalización: Aseguramos que los datos del item sean correctos antes de enviarlos al repositorio
     const sanitizedData = {
         ...updateData,
         // Si no envían 'activo', usamos el valor actual que ya tenemos en itemDate
         activo: updateData.activo !== undefined ? updateData.activo : itemDate.activo
     };
 
-    // 4. Llamar al repositorio para actualizar el item
+    // 3. Llamar al repositorio para actualizar el item
     return await updateItemRepository(itemDate.id, usuarioId, sanitizedData);
 
 }

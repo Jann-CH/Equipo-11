@@ -45,13 +45,15 @@ export const BuscarItem = ({ onAgregarItem }) => {
   }, []);
 
   const itemsFiltrados = useMemo(() => {
-    if (!busqueda) return items;
-
-    return items.filter((item) =>
-      item.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  return items.filter((item) => {
+    return (
+      item.activo &&
+      item.nombre
+        .toLowerCase()
+        .includes(busqueda.toLowerCase())
     );
-  }, [items, busqueda]);
-
+  });
+}, [items, busqueda]);
   const agregarItem = (item) => {
     onAgregarItem({ ...item, cantidad: 1 });
 
@@ -145,7 +147,7 @@ export const BuscarItem = ({ onAgregarItem }) => {
             ))
           ) : (
             <p className="px-4 py-4 text-sm text-gray-500">
-              No se encontraron servicios.
+              No se encontraron productos o servicios.
             </p>
           )}
         </div>
